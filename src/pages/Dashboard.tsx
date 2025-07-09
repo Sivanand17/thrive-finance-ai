@@ -85,14 +85,34 @@ const Dashboard = () => {
     }
   };
 
+  const cleanupAuthState = () => {
+    // Remove all Supabase auth keys from localStorage
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+        localStorage.removeItem(key);
+      }
+    });
+  };
+
   const handleSignOut = async () => {
     try {
-      await supabase.auth.signOut();
+      // Clean up auth state
+      cleanupAuthState();
+      
+      // Attempt global sign out
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        // Continue even if this fails
+      }
+      
       toast({
         title: "Signed out successfully",
         description: "You have been logged out of your account.",
       });
-      navigate('/');
+      
+      // Force page reload for clean state
+      window.location.href = '/';
     } catch (error: any) {
       toast({
         title: "Error signing out",

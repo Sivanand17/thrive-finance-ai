@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, Bot, TrendingUp } from 'lucide-react';
+import { Menu, X, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -38,11 +39,9 @@ const Navigation = () => {
 
           {/* CTA Button */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="outline" asChild>
-              <Link to="/contact">Join Beta</Link>
-            </Button>
+            <ThemeToggle />
             <Button asChild className="btn-hero">
-              <Link to="/contact">Start Free</Link>
+              <Link to="/auth">Start Free</Link>
             </Button>
           </div>
 
@@ -86,13 +85,11 @@ const Navigation = () => {
               Contact
             </Link>
             <div className="flex flex-col space-y-2 pt-4">
-              <Button variant="outline" asChild>
-                <Link to="/contact" onClick={toggleMenu}>
-                  Join Beta
-                </Link>
-              </Button>
+              <div className="flex justify-center">
+                <ThemeToggle />
+              </div>
               <Button asChild className="btn-hero">
-                <Link to="/contact" onClick={toggleMenu}>
+                <Link to="/auth" onClick={toggleMenu}>
                   Start Free
                 </Link>
               </Button>

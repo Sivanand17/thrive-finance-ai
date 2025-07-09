@@ -127,8 +127,8 @@ const Home = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
                 <Button size="lg" asChild className="btn-hero">
-                  <Link to="/contact">
-                    Join Beta Waitlist
+                  <Link to="/auth">
+                    Start Free
                     <ArrowRight className="w-5 h-5 ml-2" />
                   </Link>
                 </Button>
@@ -329,8 +329,8 @@ const Home = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" asChild className="btn-hero">
-              <Link to="/contact">
-                Join Beta Waitlist
+              <Link to="/auth">
+                Start Free
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Link>
             </Button>

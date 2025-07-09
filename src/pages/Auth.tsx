@@ -34,11 +34,11 @@ const Auth = () => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        if (session?.user) {
+        if (session?.user && event === 'SIGNED_IN') {
           // Redirect to dashboard after successful login
           setTimeout(() => {
             navigate('/dashboard');
-          }, 1000);
+          }, 500);
         }
       }
     );
@@ -61,9 +61,12 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
+      // Clean up existing auth state first
+      cleanupAuthState();
+      
       const redirectUrl = `${window.location.origin}/dashboard`;
       
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -76,10 +79,19 @@ const Auth = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Account created successfully!",
-        description: "Please check your email to verify your account.",
-      });
+      if (data.user) {
+        toast({
+          title: "Account created successfully!",
+          description: "Please check your email to verify your account, or sign in if email confirmation is disabled.",
+        });
+        
+        // If email confirmation is disabled, user will be logged in immediately
+        if (data.session) {
+          setTimeout(() => {
+            window.location.href = '/dashboard';
+          }, 1000);
+        }
+      }
     } catch (error: any) {
       toast({
         title: "Error creating account",
@@ -91,22 +103,47 @@ const Auth = () => {
     }
   };
 
+  const cleanupAuthState = () => {
+    // Remove all Supabase auth keys from localStorage
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+        localStorage.removeItem(key);
+      }
+    });
+  };
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      // Clean up existing auth state first
+      cleanupAuthState();
+      
+      // Attempt global sign out
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        // Continue even if this fails
+      }
+
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
 
-      toast({
-        title: "Welcome back!",
-        description: "You have successfully signed in.",
-      });
+      if (data.user) {
+        toast({
+          title: "Welcome back!",
+          description: "You have successfully signed in.",
+        });
+        // Force page reload for clean state
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 1000);
+      }
     } catch (error: any) {
       toast({
         title: "Error signing in",
