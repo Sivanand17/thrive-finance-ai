@@ -28,38 +28,56 @@ const Home = () => {
     {
       icon: Bot,
       title: 'Credit-Aware AI Chatbot',
-      description: 'Get personalized financial advice based on your credit score, income, and spending habits.',
-      color: 'text-primary'
+      description: 'Ask me if you can afford your next purchase, and I\'ll consider your credit score, income, and debts. Get instant answers to questions like "Should I buy this laptop?" or "How will this purchase affect my credit?"',
+      microcopy: 'Try asking: "Can I afford a ₹50,000 laptop?"',
+      cta: 'Chat with AI Now',
+      color: 'text-primary',
+      examples: ['Can I afford this iPhone?', 'Should I take this personal loan?', 'How to improve my credit score?']
     },
     {
       icon: DollarSign,
-      title: '"Can I Buy This?" Advisor',
-      description: 'Make informed purchase decisions with AI that considers your financial health.',
-      color: 'text-secondary'
+      title: '"Can I Buy This?" Purchase Advisor',
+      description: 'Make smart purchase decisions with real-time affordability analysis. Our AI considers your entire financial picture before you swipe.',
+      microcopy: 'Example: "₹30K gaming console vs saving for emergency fund"',
+      cta: 'Check Affordability',
+      color: 'text-secondary',
+      examples: ['₹25K smartphone upgrade', '₹1L vacation to Europe', '₹15K course investment']
     },
     {
       icon: TrendingUp,
       title: 'Smart Budget Planner',
-      description: 'Automatically categorize expenses and optimize your monthly budget allocation.',
-      color: 'text-accent'
+      description: 'Automatically categorize your spending and get personalized budget recommendations. Track where your money goes and stick to your financial plan with smart alerts.',
+      microcopy: 'Set budgets for food, entertainment, and savings goals',
+      cta: 'Create Budget Plan',
+      color: 'text-accent',
+      examples: ['Food & Dining: ₹8K/month', 'Entertainment: ₹3K/month', 'Emergency Fund: ₹5K/month']
     },
     {
       icon: CreditCard,
       title: 'Debt & Subscription Manager',
-      description: 'Track EMIs, credit cards, and subscriptions with smart optimization tips.',
-      color: 'text-primary'
-    },
-    {
-      icon: Shield,
-      title: 'Credit Score Improvement',
-      description: 'Get actionable plans to boost your credit score with clear explanations.',
-      color: 'text-secondary'
+      description: 'Avoid late fees, clear debts faster, and remove unwanted subscriptions. Track all your EMIs, credit cards, and recurring payments in one place.',
+      microcopy: 'Never miss a payment, save on unnecessary subscriptions',
+      cta: 'Manage Debts',
+      color: 'text-primary',
+      examples: ['Credit Card: ₹25K due 15th', 'Netflix: ₹649/month', 'Home Loan EMI: ₹18K/month']
     },
     {
       icon: Target,
-      title: 'Goal-Based Saving',
-      description: 'Set and achieve financial goals for gadgets, travel, education, and more.',
-      color: 'text-accent'
+      title: 'Financial Goal Tracker',
+      description: 'Your dream laptop, vacation, or emergency fund - fully planned and tracked. Set realistic timelines and get motivation to achieve your financial dreams.',
+      microcopy: 'Turn dreams into achievable financial milestones',
+      cta: 'Set Your Goals',
+      color: 'text-secondary',
+      examples: ['MacBook Pro in 8 months', 'Emergency fund in 1 year', 'Europe trip in 18 months']
+    },
+    {
+      icon: Bell,
+      title: 'Utility Bill Optimizer',
+      description: 'Discover how to save on electricity, gas, and other utility bills. Get personalized tips to reduce your monthly expenses without sacrificing comfort.',
+      microcopy: 'Save ₹500-2000 monthly on utilities with smart tips',
+      cta: 'Optimize Bills',
+      color: 'text-accent',
+      examples: ['Switch to LED bulbs', 'Optimize AC usage', 'Choose better electricity plan']
     }
   ];
 
@@ -87,18 +105,18 @@ const Home = () => {
   const steps = [
     {
       step: '01',
-      title: 'Share Your Financial Info',
-      description: 'Securely input your credit score, income, expenses, and financial goals.'
+      title: 'Quick Financial Setup',
+      description: 'Share your credit score, monthly income, and major expenses. Takes 2 minutes, keeps you secure.'
     },
     {
       step: '02',
-      title: 'Get AI-Powered Insights',
-      description: 'Our AI analyzes your data and provides personalized recommendations.'
+      title: 'AI Analyzes Your Situation',
+      description: 'Our AI instantly creates your personalized financial profile and spending analysis.'
     },
     {
       step: '03',
-      title: 'Take Action & Track Progress',
-      description: 'Follow actionable advice and watch your financial health improve.'
+      title: 'Make Confident Decisions',
+      description: 'Ask "Can I buy this?" and get instant, personalized advice. Track progress with motivational updates.'
     }
   ];
 
@@ -116,14 +134,13 @@ const Home = () => {
                 Beta Launch
               </Badge>
               <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-                Your AI-Powered{' '}
+                Make Every Rupee{' '}
                 <span className="hero-gradient bg-clip-text text-transparent">
-                  Financial Advisor
+                  Count Smarter
                 </span>
               </h1>
               <p className="text-xl text-muted-foreground mb-8 max-w-2xl">
-                Get personalized, explainable financial guidance that helps you improve your credit score, 
-                manage budgets, and make smarter purchase decisions.
+                Your personal AI financial advisor that analyzes your credit score, income, and spending to help you make confident money decisions. No more financial guesswork.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
                 <Button size="lg" asChild className="btn-hero">
@@ -133,8 +150,8 @@ const Home = () => {
                   </Link>
                 </Button>
                 <Button size="lg" variant="outline" asChild>
-                  <Link to="/features">
-                    Check If You Can Afford It
+                  <Link to="/auth">
+                    Try "Can I Buy This?" →
                   </Link>
                 </Button>
               </div>
@@ -169,24 +186,42 @@ const Home = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Powerful Features for Your Financial Success
+              Your Complete Financial Command Center
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Our AI-powered platform provides comprehensive financial guidance tailored to your unique situation.
+              Everything you need to take control of your money, understand your financial health, and make smarter decisions - all powered by AI.
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="feature-card animate-fade-in-up" style={{ animationDelay: `${index * 0.1}s` }}>
+              <Card key={index} className="feature-card animate-fade-in-up hover:shadow-lg transition-shadow" style={{ animationDelay: `${index * 0.1}s` }}>
                 <CardHeader>
                   <div className={`w-12 h-12 rounded-lg bg-primary-light flex items-center justify-center mb-4`}>
                     <feature.icon className={`w-6 h-6 ${feature.color}`} />
                   </div>
-                  <CardTitle className="text-xl">{feature.title}</CardTitle>
+                  <CardTitle className="text-xl mb-2">{feature.title}</CardTitle>
+                  <p className="text-sm text-muted-foreground font-medium">{feature.microcopy}</p>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                   <CardDescription className="text-base">{feature.description}</CardDescription>
+                  
+                  {feature.examples && (
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-foreground">Try these examples:</p>
+                      <div className="space-y-1">
+                        {feature.examples.map((example, i) => (
+                          <div key={i} className="text-xs bg-muted p-2 rounded text-muted-foreground">
+                            {example}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  <Button size="sm" variant="outline" className="w-full mt-4" asChild>
+                    <Link to="/auth">{feature.cta}</Link>
+                  </Button>
                 </CardContent>
               </Card>
             ))}
@@ -199,10 +234,10 @@ const Home = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              How FinanceAI Works
+              From Confused to Confident in 3 Steps
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Get started with personalized financial guidance in just three simple steps.
+              Transform your financial decision-making with our AI advisor. Setup takes just 2 minutes.
             </p>
           </div>
           
@@ -228,17 +263,17 @@ const Home = () => {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                Why Choose FinanceAI?
-              </h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">
+              Why 1000+ Users Trust FinanceAI
+            </h2>
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
                   <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center mt-1">
                     <CheckCircle className="w-5 h-5 text-primary-foreground" />
                   </div>
                   <div>
-                    <h3 className="font-semibold mb-2">Personalized for You</h3>
-                    <p className="text-muted-foreground">Every recommendation is tailored to your specific financial situation and goals.</p>
+                    <h3 className="font-semibold mb-2">AI That Knows Your Money</h3>
+                    <p className="text-muted-foreground">Every recommendation considers your credit score, income, debts, and goals. No generic advice here.</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -246,8 +281,8 @@ const Home = () => {
                     <BookOpen className="w-5 h-5 text-secondary-foreground" />
                   </div>
                   <div>
-                    <h3 className="font-semibold mb-2">Easy to Understand</h3>
-                    <p className="text-muted-foreground">Complex financial concepts explained in simple, actionable terms.</p>
+                    <h3 className="font-semibold mb-2">Plain English Explanations</h3>
+                    <p className="text-muted-foreground">No confusing financial jargon. Get clear, actionable advice you can actually understand and follow.</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -255,8 +290,8 @@ const Home = () => {
                     <Shield className="w-5 h-5 text-accent-foreground" />
                   </div>
                   <div>
-                    <h3 className="font-semibold mb-2">Secure & Private</h3>
-                    <p className="text-muted-foreground">Your financial data is encrypted and never shared with third parties.</p>
+                    <h3 className="font-semibold mb-2">Bank-Level Security</h3>
+                    <p className="text-muted-foreground">Your financial data is encrypted and never shared. We protect your privacy like your bank does.</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -264,8 +299,8 @@ const Home = () => {
                     <TrendingUp className="w-5 h-5 text-primary-foreground" />
                   </div>
                   <div>
-                    <h3 className="font-semibold mb-2">Proven Results</h3>
-                    <p className="text-muted-foreground">Users see average credit score improvements of 50+ points within 3 months.</p>
+                    <h3 className="font-semibold mb-2">Real Progress Tracking</h3>
+                    <p className="text-muted-foreground">Watch your credit score improve, debts decrease, and savings grow with motivational progress updates.</p>
                   </div>
                 </div>
               </div>
@@ -322,10 +357,10 @@ const Home = () => {
       <section className="py-16 px-4 sm:px-6 lg:px-8 bg-primary/10">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            Ready to Transform Your Financial Future?
+            Stop Guessing. Start Knowing.
           </h2>
           <p className="text-xl text-muted-foreground mb-8">
-            Join our beta program and get early access to personalized AI financial guidance.
+            Join 1000+ users making smarter money decisions with AI guidance. Your financial confidence starts today.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" asChild className="btn-hero">
@@ -335,8 +370,8 @@ const Home = () => {
               </Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link to="/features">
-                Explore Features
+              <Link to="/auth">
+                See Live Demo
               </Link>
             </Button>
           </div>

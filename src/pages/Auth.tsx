@@ -81,16 +81,14 @@ const Auth = () => {
 
       if (data.user) {
         toast({
-          title: "Account created successfully!",
-          description: "Please check your email to verify your account, or sign in if email confirmation is disabled.",
+          title: "Welcome to FinanceAI!",
+          description: "Your account has been created successfully.",
         });
         
-        // If email confirmation is disabled, user will be logged in immediately
-        if (data.session) {
-          setTimeout(() => {
-            window.location.href = '/dashboard';
-          }, 1000);
-        }
+        // Always redirect to dashboard immediately after signup
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 500);
       }
     } catch (error: any) {
       toast({
