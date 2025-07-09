@@ -1,26 +1,32 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { User, Session } from '@supabase/supabase-js';
-import { 
-  ArrowLeft, 
-  Mail, 
-  Lock, 
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { User, Session } from "@supabase/supabase-js";
+import {
+  ArrowLeft,
+  Mail,
+  Lock,
   User as UserIcon,
   Shield,
-  CheckCircle
-} from 'lucide-react';
+  CheckCircle,
+} from "lucide-react";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -29,27 +35,27 @@ const Auth = () => {
 
   useEffect(() => {
     // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user && event === 'SIGNED_IN') {
-          // Redirect to dashboard after successful login
-          setTimeout(() => {
-            navigate('/dashboard');
-          }, 500);
-        }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+
+      if (session?.user && event === "SIGNED_IN") {
+        // Redirect to dashboard after successful login
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 500);
       }
-    );
+    });
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
-        navigate('/dashboard');
+        navigate("/dashboard");
       }
     });
 
@@ -63,9 +69,9 @@ const Auth = () => {
     try {
       // Clean up existing auth state first
       cleanupAuthState();
-      
+
       const redirectUrl = `${window.location.origin}/dashboard`;
-      
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -73,8 +79,8 @@ const Auth = () => {
           emailRedirectTo: redirectUrl,
           data: {
             full_name: fullName,
-          }
-        }
+          },
+        },
       });
 
       if (error) throw error;
@@ -84,16 +90,36 @@ const Auth = () => {
           title: "Welcome to FinanceAI!",
           description: "Your account has been created successfully.",
         });
-        
-        // Always redirect to dashboard immediately after signup
-        setTimeout(() => {
-          window.location.href = '/dashboard';
-        }, 500);
+
+        // If Supabase did not create a session automatically (e.g. email confirmation required),
+        // attempt to sign the user in programmatically so we can navigate to the dashboard.
+        if (!data.session) {
+          const { error: signInError } = await supabase.auth.signInWithPassword(
+            {
+              email,
+              password,
+            }
+          );
+          if (signInError) {
+            // If sign-in fails here, we simply return and rely on email verification flow.
+            toast({
+              title: "Please verify your email",
+              description:
+                "We sent you a confirmation link. After verifying, sign in to continue.",
+            });
+            return;
+          }
+        }
+
+        // By this point we have a valid session – redirect to dashboard.
+        navigate("/dashboard");
       }
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       toast({
         title: "Error creating account",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -104,7 +130,7 @@ const Auth = () => {
   const cleanupAuthState = () => {
     // Remove all Supabase auth keys from localStorage
     Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+      if (key.startsWith("supabase.auth.") || key.includes("sb-")) {
         localStorage.removeItem(key);
       }
     });
@@ -117,10 +143,10 @@ const Auth = () => {
     try {
       // Clean up existing auth state first
       cleanupAuthState();
-      
+
       // Attempt global sign out
       try {
-        await supabase.auth.signOut({ scope: 'global' });
+        await supabase.auth.signOut({ scope: "global" });
       } catch (err) {
         // Continue even if this fails
       }
@@ -137,15 +163,16 @@ const Auth = () => {
           title: "Welcome back!",
           description: "You have successfully signed in.",
         });
-        // Force page reload for clean state
-        setTimeout(() => {
-          window.location.href = '/dashboard';
-        }, 1000);
+
+        // Redirect to dashboard immediately after sign-in using SPA navigation
+        navigate("/dashboard");
       }
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       toast({
         title: "Error signing in",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -156,19 +183,20 @@ const Auth = () => {
   const benefits = [
     {
       icon: Shield,
-      title: 'Secure & Private',
-      description: 'Your financial data is encrypted and never shared'
+      title: "Secure & Private",
+      description: "Your financial data is encrypted and never shared",
     },
     {
       icon: CheckCircle,
-      title: 'Personalized Advice',
-      description: 'AI recommendations based on your unique financial situation'
+      title: "Personalized Advice",
+      description:
+        "AI recommendations based on your unique financial situation",
     },
     {
       icon: UserIcon,
-      title: 'Track Progress',
-      description: 'Monitor your credit improvement and financial goals'
-    }
+      title: "Track Progress",
+      description: "Monitor your credit improvement and financial goals",
+    },
   ];
 
   return (
@@ -184,28 +212,29 @@ const Auth = () => {
               </Link>
             </Button>
             <h1 className="text-3xl font-bold">
-              {isLogin ? 'Welcome back' : 'Create account'}
+              {isLogin ? "Welcome back" : "Create account"}
             </h1>
             <p className="text-muted-foreground">
-              {isLogin 
-                ? 'Sign in to your FinanceAI account' 
-                : 'Join thousands improving their financial health'
-              }
+              {isLogin
+                ? "Sign in to your FinanceAI account"
+                : "Join thousands improving their financial health"}
             </p>
           </div>
 
           <Card>
             <CardHeader>
-              <CardTitle>{isLogin ? 'Sign In' : 'Sign Up'}</CardTitle>
+              <CardTitle>{isLogin ? "Sign In" : "Sign Up"}</CardTitle>
               <CardDescription>
-                {isLogin 
-                  ? 'Enter your credentials to access your account'
-                  : 'Create your account to get started'
-                }
+                {isLogin
+                  ? "Enter your credentials to access your account"
+                  : "Create your account to get started"}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={isLogin ? handleSignIn : handleSignUp} className="space-y-4">
+              <form
+                onSubmit={isLogin ? handleSignIn : handleSignUp}
+                className="space-y-4"
+              >
                 {!isLogin && (
                   <div>
                     <Label htmlFor="fullName">Full Name</Label>
@@ -223,7 +252,7 @@ const Auth = () => {
                     </div>
                   </div>
                 )}
-                
+
                 <div>
                   <Label htmlFor="email">Email</Label>
                   <div className="relative">
@@ -239,7 +268,7 @@ const Auth = () => {
                     />
                   </div>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="password">Password</Label>
                   <div className="relative">
@@ -257,27 +286,32 @@ const Auth = () => {
                   </div>
                 </div>
 
-                <Button 
-                  type="submit" 
-                  className="w-full btn-hero" 
+                <Button
+                  type="submit"
+                  className="w-full btn-hero"
                   disabled={isLoading}
                 >
-                  {isLoading 
-                    ? (isLogin ? 'Signing in...' : 'Creating account...') 
-                    : (isLogin ? 'Sign In' : 'Create Account')
-                  }
+                  {isLoading
+                    ? isLogin
+                      ? "Signing in..."
+                      : "Creating account..."
+                    : isLogin
+                    ? "Sign In"
+                    : "Create Account"}
                 </Button>
               </form>
 
               <div className="mt-6 text-center">
                 <p className="text-sm text-muted-foreground">
-                  {isLogin ? "Don't have an account?" : "Already have an account?"}
+                  {isLogin
+                    ? "Don't have an account?"
+                    : "Already have an account?"}
                   <Button
                     variant="link"
                     onClick={() => setIsLogin(!isLogin)}
                     className="p-0 ml-1 h-auto"
                   >
-                    {isLogin ? 'Sign up' : 'Sign in'}
+                    {isLogin ? "Sign up" : "Sign in"}
                   </Button>
                 </p>
               </div>
@@ -290,12 +324,15 @@ const Auth = () => {
       <div className="hidden lg:flex flex-1 bg-primary/5 items-center justify-center p-8">
         <div className="max-w-md space-y-8">
           <div className="text-center space-y-4">
-            <h2 className="text-2xl font-bold">Your Financial Future Starts Here</h2>
+            <h2 className="text-2xl font-bold">
+              Your Financial Future Starts Here
+            </h2>
             <p className="text-muted-foreground">
-              Join thousands of young professionals who are taking control of their finances with AI-powered guidance.
+              Join thousands of young professionals who are taking control of
+              their finances with AI-powered guidance.
             </p>
           </div>
-          
+
           <div className="space-y-6">
             {benefits.map((benefit, index) => (
               <div key={index} className="flex items-start gap-4">
@@ -304,7 +341,9 @@ const Auth = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold mb-1">{benefit.title}</h3>
-                  <p className="text-sm text-muted-foreground">{benefit.description}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {benefit.description}
+                  </p>
                 </div>
               </div>
             ))}

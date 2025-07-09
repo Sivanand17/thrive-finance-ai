@@ -1,17 +1,23 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { User, Session } from '@supabase/supabase-js';
-import { 
-  Bot, 
-  TrendingUp, 
-  Target, 
-  CreditCard, 
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { User, Session } from "@supabase/supabase-js";
+import {
+  Bot,
+  TrendingUp,
+  Target,
+  CreditCard,
   PiggyBank,
   ShoppingCart,
   LogOut,
@@ -20,44 +26,46 @@ import {
   MessageCircle,
   BarChart3,
   Calendar,
-  AlertCircle
-} from 'lucide-react';
-import AIChat from '@/components/AIChat';
-import FinancialSetup from '@/components/FinancialSetup';
-import PurchaseAdvisor from '@/components/PurchaseAdvisor';
-import BudgetPlanner from '@/components/BudgetPlanner';
-import DebtManager from '@/components/DebtManager';
-import GoalTracker from '@/components/GoalTracker';
+  AlertCircle,
+} from "lucide-react";
+
+import { ThemeToggle } from "@/components/ThemeToggle";
+import AIChat from "@/components/AIChat";
+import FinancialSetup from "@/components/FinancialSetup";
+import PurchaseAdvisor from "@/components/PurchaseAdvisor";
+import BudgetPlanner from "@/components/BudgetPlanner";
+import DebtManager from "@/components/DebtManager";
+import GoalTracker from "@/components/GoalTracker";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [financialProfile, setFinancialProfile] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState("overview");
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
     // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (!session?.user) {
-          navigate('/auth');
-        }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+
+      if (!session?.user) {
+        navigate("/auth");
       }
-    );
+    });
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (!session?.user) {
-        navigate('/auth');
+        navigate("/auth");
       } else {
         loadFinancialProfile(session.user.id);
       }
@@ -70,25 +78,25 @@ const Dashboard = () => {
   const loadFinancialProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
-        .from('financial_profiles')
-        .select('*')
-        .eq('user_id', userId)
+        .from("financial_profiles")
+        .select("*")
+        .eq("user_id", userId)
         .single();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error && error.code !== "PGRST116") {
         throw error;
       }
 
       setFinancialProfile(data);
     } catch (error: any) {
-      console.error('Error loading financial profile:', error);
+      console.error("Error loading financial profile:", error);
     }
   };
 
   const cleanupAuthState = () => {
     // Remove all Supabase auth keys from localStorage
     Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+      if (key.startsWith("supabase.auth.") || key.includes("sb-")) {
         localStorage.removeItem(key);
       }
     });
@@ -98,21 +106,21 @@ const Dashboard = () => {
     try {
       // Clean up auth state
       cleanupAuthState();
-      
+
       // Attempt global sign out
       try {
-        await supabase.auth.signOut({ scope: 'global' });
+        await supabase.auth.signOut({ scope: "global" });
       } catch (err) {
         // Continue even if this fails
       }
-      
+
       toast({
         title: "Signed out successfully",
         description: "You have been logged out of your account.",
       });
-      
+
       // Force page reload for clean state
-      window.location.href = '/';
+      window.location.href = "/";
     } catch (error: any) {
       toast({
         title: "Error signing out",
@@ -123,16 +131,16 @@ const Dashboard = () => {
   };
 
   const getCreditScoreColor = (score: number) => {
-    if (score >= 750) return 'text-green-600';
-    if (score >= 650) return 'text-yellow-600';
-    return 'text-red-600';
+    if (score >= 750) return "text-green-600";
+    if (score >= 650) return "text-yellow-600";
+    return "text-red-600";
   };
 
   const getCreditScoreLabel = (score: number) => {
-    if (score >= 750) return 'Excellent';
-    if (score >= 650) return 'Good';
-    if (score >= 550) return 'Fair';
-    return 'Poor';
+    if (score >= 750) return "Excellent";
+    if (score >= 650) return "Good";
+    if (score >= 550) return "Fair";
+    return "Poor";
   };
 
   if (isLoading) {
@@ -151,12 +159,12 @@ const Dashboard = () => {
   }
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: BarChart3 },
-    { id: 'chat', label: 'AI Chat', icon: MessageCircle },
-    { id: 'purchase', label: 'Purchase Advisor', icon: ShoppingCart },
-    { id: 'budget', label: 'Budget Planner', icon: PiggyBank },
-    { id: 'debts', label: 'Debts & Subscriptions', icon: CreditCard },
-    { id: 'goals', label: 'Financial Goals', icon: Target },
+    { id: "overview", label: "Overview", icon: BarChart3 },
+    { id: "chat", label: "AI Chat", icon: MessageCircle },
+    { id: "purchase", label: "Purchase Advisor", icon: ShoppingCart },
+    { id: "budget", label: "Budget Planner", icon: PiggyBank },
+    { id: "debts", label: "Debts & Subscriptions", icon: CreditCard },
+    { id: "goals", label: "Financial Goals", icon: Target },
   ];
 
   return (
@@ -168,11 +176,13 @@ const Dashboard = () => {
             <Bot className="w-8 h-8 text-primary" />
             <h1 className="text-xl font-bold">FinanceAI Dashboard</h1>
           </div>
-          
+
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">
               Welcome, {user?.user_metadata?.full_name || user?.email}
             </span>
+            {/* Dark mode toggle */}
+            <ThemeToggle />
             <Button variant="ghost" size="sm" onClick={handleSignOut}>
               <LogOut className="w-4 h-4 mr-2" />
               Sign Out
@@ -207,7 +217,7 @@ const Dashboard = () => {
 
           {/* Main Content */}
           <div className="lg:col-span-3">
-            {activeTab === 'overview' && (
+            {activeTab === "overview" && (
               <div className="space-y-6">
                 {/* Credit Score Card */}
                 <Card>
@@ -220,7 +230,11 @@ const Dashboard = () => {
                   <CardContent>
                     <div className="flex items-center justify-between mb-4">
                       <div>
-                        <div className={`text-3xl font-bold ${getCreditScoreColor(financialProfile.credit_score)}`}>
+                        <div
+                          className={`text-3xl font-bold ${getCreditScoreColor(
+                            financialProfile.credit_score
+                          )}`}
+                        >
                           {financialProfile.credit_score}
                         </div>
                         <Badge variant="secondary">
@@ -228,9 +242,11 @@ const Dashboard = () => {
                         </Badge>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm text-muted-foreground">Range: 300-850</p>
-                        <Progress 
-                          value={(financialProfile.credit_score / 850) * 100} 
+                        <p className="text-sm text-muted-foreground">
+                          Range: 300-850
+                        </p>
+                        <Progress
+                          value={(financialProfile.credit_score / 850) * 100}
                           className="w-32 mt-2"
                         />
                       </div>
@@ -242,7 +258,9 @@ const Dashboard = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Card>
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium">Monthly Income</CardTitle>
+                      <CardTitle className="text-sm font-medium">
+                        Monthly Income
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold text-green-600">
@@ -250,10 +268,12 @@ const Dashboard = () => {
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   <Card>
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium">Monthly Expenses</CardTitle>
+                      <CardTitle className="text-sm font-medium">
+                        Monthly Expenses
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold text-red-600">
@@ -261,10 +281,12 @@ const Dashboard = () => {
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   <Card>
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium">Savings Balance</CardTitle>
+                      <CardTitle className="text-sm font-medium">
+                        Savings Balance
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold text-blue-600">
@@ -284,34 +306,34 @@ const Dashboard = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="h-20 flex-col gap-2"
-                        onClick={() => setActiveTab('chat')}
+                        onClick={() => setActiveTab("chat")}
                       >
                         <MessageCircle className="w-6 h-6" />
                         <span className="text-sm">Ask AI</span>
                       </Button>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="h-20 flex-col gap-2"
-                        onClick={() => setActiveTab('purchase')}
+                        onClick={() => setActiveTab("purchase")}
                       >
                         <ShoppingCart className="w-6 h-6" />
                         <span className="text-sm">Purchase Advice</span>
                       </Button>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="h-20 flex-col gap-2"
-                        onClick={() => setActiveTab('budget')}
+                        onClick={() => setActiveTab("budget")}
                       >
                         <PiggyBank className="w-6 h-6" />
                         <span className="text-sm">Budget Plan</span>
                       </Button>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="h-20 flex-col gap-2"
-                        onClick={() => setActiveTab('goals')}
+                        onClick={() => setActiveTab("goals")}
                       >
                         <Target className="w-6 h-6" />
                         <span className="text-sm">Set Goals</span>
@@ -322,11 +344,11 @@ const Dashboard = () => {
               </div>
             )}
 
-            {activeTab === 'chat' && <AIChat userId={user?.id} />}
-            {activeTab === 'purchase' && <PurchaseAdvisor userId={user?.id} />}
-            {activeTab === 'budget' && <BudgetPlanner userId={user?.id} />}
-            {activeTab === 'debts' && <DebtManager userId={user?.id} />}
-            {activeTab === 'goals' && <GoalTracker userId={user?.id} />}
+            {activeTab === "chat" && <AIChat userId={user?.id} />}
+            {activeTab === "purchase" && <PurchaseAdvisor userId={user?.id} />}
+            {activeTab === "budget" && <BudgetPlanner userId={user?.id} />}
+            {activeTab === "debts" && <DebtManager userId={user?.id} />}
+            {activeTab === "goals" && <GoalTracker userId={user?.id} />}
           </div>
         </div>
       </div>
