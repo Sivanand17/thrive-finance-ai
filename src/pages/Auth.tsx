@@ -70,13 +70,10 @@ const Auth = () => {
       // Clean up existing auth state first
       cleanupAuthState();
 
-      const redirectUrl = `${window.location.origin}/dashboard`;
-
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: redirectUrl,
           data: {
             full_name: fullName,
           },
@@ -91,19 +88,8 @@ const Auth = () => {
           description: "Your account has been created successfully.",
         });
 
-        // Always try to sign in immediately after signup to bypass email confirmation
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        
-        if (signInError) {
-          // If auto sign-in fails, try to navigate anyway as the user might be created
-          console.log("Auto sign-in failed, but user was created");
-        }
-
-        // Navigate to dashboard regardless
-        navigate("/dashboard");
+        // Immediately navigate to dashboard - bypass email confirmation
+        window.location.href = "/dashboard";
       }
     } catch (error) {
       const errorMessage =
