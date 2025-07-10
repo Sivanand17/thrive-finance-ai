@@ -36,6 +36,11 @@ import PurchaseAdvisor from "@/components/PurchaseAdvisor";
 import BudgetPlanner from "@/components/BudgetPlanner";
 import DebtManager from "@/components/DebtManager";
 import GoalTracker from "@/components/GoalTracker";
+import PersonalizedInsights from "@/components/PersonalizedInsights";
+import Gamification from "@/components/Gamification";
+import VoiceInput from "@/components/VoiceInput";
+import WhatIfTools from "@/components/WhatIfTools";
+import ExplainableAI from "@/components/ExplainableAI";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -47,50 +52,34 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Set up auth state listener
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-
-      if (!session?.user) {
-        navigate("/auth");
+    // Mock user data for development
+    const mockUser = {
+      id: 'mock-user-id',
+      email: 'demo@financeai.com',
+      user_metadata: {
+        full_name: 'Demo User'
       }
-    });
-
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-
-      if (!session?.user) {
-        navigate("/auth");
-      } else {
-        loadFinancialProfile(session.user.id);
-      }
-      setIsLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+    };
+    
+    setUser(mockUser as any);
+    loadFinancialProfile(mockUser.id);
+    setIsLoading(false);
+  }, []);
 
   const loadFinancialProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("financial_profiles")
-        .select("*")
-        .eq("user_id", userId)
-        .single();
-
-      if (error && error.code !== "PGRST116") {
-        throw error;
-      }
-
-      setFinancialProfile(data);
-    } catch (error: any) {
-      console.error("Error loading financial profile:", error);
-    }
+    // Mock financial profile for development
+    const mockProfile = {
+      user_id: userId,
+      credit_score: 720,
+      monthly_income: 75000,
+      monthly_expenses: 45000,
+      savings_balance: 125000,
+      debt_amount: 35000,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    
+    setFinancialProfile(mockProfile);
   };
 
   const cleanupAuthState = () => {
