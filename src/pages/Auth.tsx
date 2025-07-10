@@ -73,22 +73,25 @@ const Auth = () => {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
-        },
       });
 
       if (error) throw error;
 
       if (data.user) {
+        // Now sign them in immediately to bypass email confirmation
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (signInError) throw signInError;
+
         toast({
           title: "Welcome to FinanceAI!",
           description: "Your account has been created successfully.",
         });
 
-        // Immediately navigate to dashboard - bypass email confirmation
+        // Force immediate redirect
         window.location.href = "/dashboard";
       }
     } catch (error) {
