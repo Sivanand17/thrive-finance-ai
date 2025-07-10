@@ -28,6 +28,29 @@ interface Message {
   conversationType?: string;
 }
 
+const formatAIResponse = (content: string) => {
+  return content
+    // Add emojis to common financial terms
+    .replace(/budget/gi, '💰 budget')
+    .replace(/credit score/gi, '📊 credit score')
+    .replace(/savings/gi, '🏦 savings')
+    .replace(/debt/gi, '💳 debt')
+    .replace(/investment/gi, '📈 investment')
+    .replace(/emergency fund/gi, '🚨 emergency fund')
+    .replace(/goal/gi, '🎯 goal')
+    // Format headings with better typography
+    .replace(/^### (.+)$/gm, '<h3 class="text-lg font-semibold text-primary mb-2 mt-4">💡 $1</h3>')
+    .replace(/^## (.+)$/gm, '<h2 class="text-xl font-bold text-primary mb-3 mt-4">✨ $1</h2>')
+    .replace(/^# (.+)$/gm, '<h1 class="text-2xl font-bold text-primary mb-4 mt-4">🌟 $1</h1>')
+    // Format bold text
+    .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-primary">$1</strong>')
+    // Format bullet points with emojis
+    .replace(/^- (.+)$/gm, '• $1')
+    .replace(/^• /gm, '✅ ')
+    // Add line breaks for better readability
+    .replace(/\n/g, '<br/>');
+};
+
 const AIChat = ({ userId }: AIChatProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -175,13 +198,22 @@ const AIChat = ({ userId }: AIChatProps) => {
                   
                   <div className={`max-w-[70%] ${message.type === 'user' ? 'order-2' : ''}`}>
                     <div
-                      className={`rounded-lg p-3 ${
+                      className={`rounded-lg p-4 ${
                         message.type === 'user'
                           ? 'bg-primary text-primary-foreground'
                           : 'bg-muted'
                       }`}
                     >
-                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      {message.type === 'ai' ? (
+                        <div 
+                          className="text-sm whitespace-pre-wrap leading-relaxed"
+                          dangerouslySetInnerHTML={{ 
+                            __html: formatAIResponse(message.content) 
+                          }}
+                        />
+                      ) : (
+                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      )}
                     </div>
                     <div className="flex items-center gap-2 mt-1">
                       <p className="text-xs text-muted-foreground">

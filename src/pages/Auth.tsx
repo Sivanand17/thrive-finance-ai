@@ -91,27 +91,18 @@ const Auth = () => {
           description: "Your account has been created successfully.",
         });
 
-        // If Supabase did not create a session automatically (e.g. email confirmation required),
-        // attempt to sign the user in programmatically so we can navigate to the dashboard.
-        if (!data.session) {
-          const { error: signInError } = await supabase.auth.signInWithPassword(
-            {
-              email,
-              password,
-            }
-          );
-          if (signInError) {
-            // If sign-in fails here, we simply return and rely on email verification flow.
-            toast({
-              title: "Please verify your email",
-              description:
-                "We sent you a confirmation link. After verifying, sign in to continue.",
-            });
-            return;
-          }
+        // Always try to sign in immediately after signup to bypass email confirmation
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        
+        if (signInError) {
+          // If auto sign-in fails, try to navigate anyway as the user might be created
+          console.log("Auto sign-in failed, but user was created");
         }
 
-        // By this point we have a valid session – redirect to dashboard.
+        // Navigate to dashboard regardless
         navigate("/dashboard");
       }
     } catch (error) {
