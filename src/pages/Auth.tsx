@@ -69,27 +69,34 @@ const Auth = () => {
     try {
       // Clean up existing auth state first
       cleanupAuthState();
+<<<<<<< HEAD
       
       const redirectUrl = `${window.location.origin}/dashboard`;
       
+=======
+
+>>>>>>> e7edcc5ec430b55a93e111d30cd7c22e4da4dded
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            full_name: fullName,
-          },
-        },
       });
 
       if (error) throw error;
 
       if (data.user) {
+        // Now sign them in immediately to bypass email confirmation
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (signInError) throw signInError;
+
         toast({
           title: "Welcome to FinanceAI!",
           description: "Your account has been created successfully.",
         });
+<<<<<<< HEAD
         
         // If Supabase did not create a session automatically (e.g. email confirmation required),
         // attempt to sign the user in programmatically so we can navigate to the dashboard.
@@ -113,6 +120,11 @@ const Auth = () => {
 
         // By this point we have a valid session – redirect to dashboard.
         navigate("/dashboard");
+=======
+
+        // Force immediate redirect
+        window.location.href = "/dashboard";
+>>>>>>> e7edcc5ec430b55a93e111d30cd7c22e4da4dded
       }
     } catch (error) {
       const errorMessage =

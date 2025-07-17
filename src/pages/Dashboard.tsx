@@ -45,6 +45,7 @@ import PurchaseAdvisor from "@/components/PurchaseAdvisor";
 import BudgetPlanner from "@/components/BudgetPlanner";
 import DebtManager from "@/components/DebtManager";
 import GoalTracker from "@/components/GoalTracker";
+<<<<<<< HEAD
 import WhatIfSimulator from "../components/WhatIfSimulator";
 import { formatAIContent } from "../components/ai-format";
 import { sendPushNotification } from "../main";
@@ -65,6 +66,13 @@ import {
 import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
 
 const OPENAI_FALLBACK_KEY = "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"; // TODO: Replace with your OpenAI API key (never expose in production)
+=======
+import PersonalizedInsights from "@/components/PersonalizedInsights";
+import Gamification from "@/components/Gamification";
+import VoiceInput from "@/components/VoiceInput";
+import WhatIfTools from "@/components/WhatIfTools";
+import ExplainableAI from "@/components/ExplainableAI";
+>>>>>>> e7edcc5ec430b55a93e111d30cd7c22e4da4dded
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -93,16 +101,14 @@ const Dashboard = () => {
   const [aiRetryCount, setAiRetryCount] = useState(0);
 
   useEffect(() => {
-    // Set up auth state listener
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-
-      if (!session?.user) {
-        navigate("/auth");
+    // Mock user data for development
+    const mockUser = {
+      id: 'mock-user-id',
+      email: 'demo@financeai.com',
+      user_metadata: {
+        full_name: 'Demo User'
       }
+<<<<<<< HEAD
     });
 
     // Check for existing session
@@ -122,6 +128,14 @@ const Dashboard = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+=======
+    };
+    
+    setUser(mockUser as any);
+    loadFinancialProfile(mockUser.id);
+    setIsLoading(false);
+  }, []);
+>>>>>>> e7edcc5ec430b55a93e111d30cd7c22e4da4dded
 
   useEffect(() => {
     if (achievements.includes("Goal Achiever")) {
@@ -221,21 +235,19 @@ const Dashboard = () => {
   }, [user]);
 
   const loadFinancialProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("financial_profiles")
-        .select("*")
-        .eq("user_id", userId)
-        .single();
-
-      if (error && error.code !== "PGRST116") {
-        throw error;
-      }
-
-      setFinancialProfile(data);
-    } catch (error: any) {
-      console.error("Error loading financial profile:", error);
-    }
+    // Mock financial profile for development
+    const mockProfile = {
+      user_id: userId,
+      credit_score: 720,
+      monthly_income: 75000,
+      monthly_expenses: 45000,
+      savings_balance: 125000,
+      debt_amount: 35000,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    
+    setFinancialProfile(mockProfile);
   };
 
   // Load insights (budget overspending & emergency fund progress)

@@ -37,6 +37,7 @@ interface Message {
   conversationType?: string;
 }
 
+<<<<<<< HEAD
 const emojiMap: Record<string, string> = {
   save: "💰",
   goal: "🎯",
@@ -83,6 +84,31 @@ function addEmojis(text: string) {
 
 const OPENAI_FALLBACK_KEY = "sk-..."; // TODO: Replace with your OpenAI API key (never expose in production)
 
+=======
+const formatAIResponse = (content: string) => {
+  return content
+    // Add emojis to common financial terms
+    .replace(/budget/gi, '💰 budget')
+    .replace(/credit score/gi, '📊 credit score')
+    .replace(/savings/gi, '🏦 savings')
+    .replace(/debt/gi, '💳 debt')
+    .replace(/investment/gi, '📈 investment')
+    .replace(/emergency fund/gi, '🚨 emergency fund')
+    .replace(/goal/gi, '🎯 goal')
+    // Format headings with better typography
+    .replace(/^### (.+)$/gm, '<h3 class="text-lg font-semibold text-primary mb-2 mt-4">💡 $1</h3>')
+    .replace(/^## (.+)$/gm, '<h2 class="text-xl font-bold text-primary mb-3 mt-4">✨ $1</h2>')
+    .replace(/^# (.+)$/gm, '<h1 class="text-2xl font-bold text-primary mb-4 mt-4">🌟 $1</h1>')
+    // Format bold text
+    .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-primary">$1</strong>')
+    // Format bullet points with emojis
+    .replace(/^- (.+)$/gm, '• $1')
+    .replace(/^• /gm, '✅ ')
+    // Add line breaks for better readability
+    .replace(/\n/g, '<br/>');
+};
+
+>>>>>>> e7edcc5ec430b55a93e111d30cd7c22e4da4dded
 const AIChat = ({ userId }: AIChatProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -423,6 +449,7 @@ const AIChat = ({ userId }: AIChatProps) => {
                     }`}
                   >
                     <div
+<<<<<<< HEAD
                       className={`rounded-lg p-3 ${
                         message.type === "user"
                           ? "bg-primary text-primary-foreground"
@@ -430,6 +457,37 @@ const AIChat = ({ userId }: AIChatProps) => {
                       }`}
                     >
                       <p className="text-sm">{message.content}</p>
+=======
+                      className={`rounded-lg p-4 ${
+                        message.type === 'user'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted'
+                      }`}
+                    >
+                      {message.type === 'ai' ? (
+                        <div 
+                          className="text-sm whitespace-pre-wrap leading-relaxed"
+                          dangerouslySetInnerHTML={{ 
+                            __html: formatAIResponse(message.content) 
+                          }}
+                        />
+                      ) : (
+                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="text-xs text-muted-foreground">
+                        {message.timestamp.toLocaleTimeString([], { 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        })}
+                      </p>
+                      {message.conversationType && (
+                        <Badge variant="secondary" className="text-xs">
+                          {message.conversationType.replace('_', ' ')}
+                        </Badge>
+                      )}
+>>>>>>> e7edcc5ec430b55a93e111d30cd7c22e4da4dded
                     </div>
                   </div>
                 </div>
