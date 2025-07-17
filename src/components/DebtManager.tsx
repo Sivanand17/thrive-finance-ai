@@ -1,21 +1,35 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { 
-  CreditCard, 
-  Plus, 
-  Calendar, 
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  CreditCard,
+  Plus,
+  Calendar,
   AlertTriangle,
   CheckCircle,
   Trash2,
-  Bell
-} from 'lucide-react';
+  Bell,
+  Loader2,
+} from "lucide-react";
+import { formatAIContent } from "./ai-format";
 
 interface DebtManagerProps {
   userId?: string;
@@ -32,15 +46,19 @@ interface DebtSubscription {
 }
 
 const DebtManager = ({ userId }: DebtManagerProps) => {
-  const [debtsSubscriptions, setDebtsSubscriptions] = useState<DebtSubscription[]>([]);
+  const [debtsSubscriptions, setDebtsSubscriptions] = useState<
+    DebtSubscription[]
+  >([]);
   const [newItem, setNewItem] = useState({
-    name: '',
-    type: 'subscription',
-    amount: '',
-    due_date: '',
-    frequency: 'monthly'
+    name: "",
+    type: "subscription",
+    amount: "",
+    due_date: "",
+    frequency: "monthly",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
   const { toast } = useToast();
 
   const loadDebtsSubscriptions = async () => {
@@ -48,15 +66,15 @@ const DebtManager = ({ userId }: DebtManagerProps) => {
 
     try {
       const { data, error } = await supabase
-        .from('debts_subscriptions')
-        .select('*')
-        .eq('user_id', userId)
-        .order('due_date');
+        .from("debts_subscriptions")
+        .select("*")
+        .eq("user_id", userId)
+        .order("due_date");
 
       if (error) throw error;
       setDebtsSubscriptions(data || []);
     } catch (error: any) {
-      console.error('Error loading debts and subscriptions:', error);
+      console.error("Error loading debts and subscriptions:", error);
     }
   };
 
@@ -71,26 +89,24 @@ const DebtManager = ({ userId }: DebtManagerProps) => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase
-        .from('debts_subscriptions')
-        .insert({
-          user_id: userId,
-          name: newItem.name.trim(),
-          type: newItem.type,
-          amount: parseFloat(newItem.amount),
-          due_date: newItem.due_date || null,
-          frequency: newItem.frequency,
-          status: 'active'
-        });
+      const { error } = await supabase.from("debts_subscriptions").insert({
+        user_id: userId,
+        name: newItem.name.trim(),
+        type: newItem.type,
+        amount: parseFloat(newItem.amount),
+        due_date: newItem.due_date || null,
+        frequency: newItem.frequency,
+        status: "active",
+      });
 
       if (error) throw error;
 
       setNewItem({
-        name: '',
-        type: 'subscription',
-        amount: '',
-        due_date: '',
-        frequency: 'monthly'
+        name: "",
+        type: "subscription",
+        amount: "",
+        due_date: "",
+        frequency: "monthly",
       });
       await loadDebtsSubscriptions();
 
@@ -112,9 +128,9 @@ const DebtManager = ({ userId }: DebtManagerProps) => {
   const handleDeleteItem = async (id: string) => {
     try {
       const { error } = await supabase
-        .from('debts_subscriptions')
+        .from("debts_subscriptions")
         .delete()
-        .eq('id', id);
+        .eq("id", id);
 
       if (error) throw error;
 
@@ -136,9 +152,9 @@ const DebtManager = ({ userId }: DebtManagerProps) => {
   const handleMarkPaid = async (id: string) => {
     try {
       const { error } = await supabase
-        .from('debts_subscriptions')
-        .update({ status: 'paid' })
-        .eq('id', id);
+        .from("debts_subscriptions")
+        .update({ status: "paid" })
+        .eq("id", id);
 
       if (error) throw error;
 
@@ -157,20 +173,111 @@ const DebtManager = ({ userId }: DebtManagerProps) => {
     }
   };
 
+  const getRepaymentStrategy = async () => {
+    if (!userId) return;
+    setAiLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        "financial-ai-advisor",
+        {
+          body: {
+            message:
+              "Provide a debt repayment plan using snowball and avalanche methods based on my current debts list.",
+            type: "debt_strategy",
+            userId,
+          },
+        }
+      );
+      if (error) throw error;
+      if (data?.response) setAiSuggestion(data.response);
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message,
+        variant: "destructive",
+      });
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const optimizeSubs = async () => {
+    if (!userId) return;
+    setAiLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        "financial-ai-advisor",
+        {
+          body: {
+            message:
+              "Review my subscriptions list and identify unused or low-value subscriptions to cancel.",
+            type: "subscription_opt",
+            userId,
+          },
+        }
+      );
+      if (error) throw error;
+      if (data?.response) setAiSuggestion(data.response);
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message,
+        variant: "destructive",
+      });
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const optimizeUtility = async () => {
+    if (!userId) return;
+    setAiLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        "financial-ai-advisor",
+        {
+          body: {
+            message:
+              "Provide tips to reduce my electricity and gas bills based on my utility expenses.",
+            type: "utility_opt",
+            userId,
+          },
+        }
+      );
+      if (error) throw error;
+      if (data?.response) setAiSuggestion(data.response);
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message,
+        variant: "destructive",
+      });
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'paid': return <CheckCircle className="w-4 h-4 text-green-600" />;
-      case 'active': return <AlertTriangle className="w-4 h-4 text-yellow-600" />;
-      default: return <AlertTriangle className="w-4 h-4 text-gray-500" />;
+      case "paid":
+        return <CheckCircle className="w-4 h-4 text-green-600" />;
+      case "active":
+        return <AlertTriangle className="w-4 h-4 text-yellow-600" />;
+      default:
+        return <AlertTriangle className="w-4 h-4 text-gray-500" />;
     }
   };
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'debt': return 'bg-red-100 text-red-800';
-      case 'emi': return 'bg-orange-100 text-orange-800';
-      case 'subscription': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "debt":
+        return "bg-red-100 text-red-800";
+      case "emi":
+        return "bg-orange-100 text-orange-800";
+      case "subscription":
+        return "bg-blue-100 text-blue-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -183,17 +290,19 @@ const DebtManager = ({ userId }: DebtManagerProps) => {
     return diffDays;
   };
 
-  const activeItems = debtsSubscriptions.filter(item => item.status === 'active');
-  const paidItems = debtsSubscriptions.filter(item => item.status === 'paid');
+  const activeItems = debtsSubscriptions.filter(
+    (item) => item.status === "active"
+  );
+  const paidItems = debtsSubscriptions.filter((item) => item.status === "paid");
   const totalMonthlyAmount = activeItems.reduce((sum, item) => {
-    if (item.frequency === 'monthly') return sum + item.amount;
-    if (item.frequency === 'yearly') return sum + (item.amount / 12);
-    if (item.frequency === 'weekly') return sum + (item.amount * 4);
+    if (item.frequency === "monthly") return sum + item.amount;
+    if (item.frequency === "yearly") return sum + item.amount / 12;
+    if (item.frequency === "weekly") return sum + item.amount * 4;
     return sum;
   }, 0);
 
   // Get upcoming payments (next 7 days)
-  const upcomingPayments = activeItems.filter(item => {
+  const upcomingPayments = activeItems.filter((item) => {
     if (!item.due_date) return false;
     const daysUntilDue = getDaysUntilDue(item.due_date);
     return daysUntilDue !== null && daysUntilDue >= 0 && daysUntilDue <= 7;
@@ -205,7 +314,9 @@ const DebtManager = ({ userId }: DebtManagerProps) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Monthly Obligations</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Monthly Obligations
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
@@ -213,7 +324,7 @@ const DebtManager = ({ userId }: DebtManagerProps) => {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Active Items</CardTitle>
@@ -224,10 +335,12 @@ const DebtManager = ({ userId }: DebtManagerProps) => {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Upcoming Payments</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Upcoming Payments
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-yellow-600">
@@ -236,6 +349,41 @@ const DebtManager = ({ userId }: DebtManagerProps) => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Action Buttons */}
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          onClick={getRepaymentStrategy}
+          disabled={aiLoading}
+        >
+          Snowball/Avalanche Plan
+        </Button>
+        <Button variant="outline" onClick={optimizeSubs} disabled={aiLoading}>
+          Optimize Subscriptions
+        </Button>
+        <Button
+          variant="outline"
+          onClick={optimizeUtility}
+          disabled={aiLoading}
+        >
+          Lower Utility Bills
+        </Button>
+        {aiLoading && <Loader2 className="animate-spin w-4 h-4" />}
+      </div>
+
+      {aiSuggestion && (
+        <Card>
+          <CardHeader>
+            <CardTitle>AI Suggestions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 text-sm leading-relaxed">
+              {formatAIContent(aiSuggestion)}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Upcoming Payments Alert */}
       {upcomingPayments.length > 0 && (
@@ -251,12 +399,21 @@ const DebtManager = ({ userId }: DebtManagerProps) => {
               {upcomingPayments.map((item) => {
                 const daysUntilDue = getDaysUntilDue(item.due_date);
                 return (
-                  <div key={item.id} className="flex items-center justify-between">
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between"
+                  >
                     <span className="font-medium">{item.name}</span>
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline">₹{item.amount.toLocaleString()}</Badge>
+                      <Badge variant="outline">
+                        ₹{item.amount.toLocaleString()}
+                      </Badge>
                       <span className="text-sm text-muted-foreground">
-                        {daysUntilDue === 0 ? 'Due today' : `Due in ${daysUntilDue} day${daysUntilDue > 1 ? 's' : ''}`}
+                        {daysUntilDue === 0
+                          ? "Due today"
+                          : `Due in ${daysUntilDue} day${
+                              daysUntilDue > 1 ? "s" : ""
+                            }`}
                       </span>
                     </div>
                   </div>
@@ -286,16 +443,20 @@ const DebtManager = ({ userId }: DebtManagerProps) => {
                 <Input
                   id="name"
                   value={newItem.name}
-                  onChange={(e) => setNewItem(prev => ({ ...prev, name: e.target.value }))}
+                  onChange={(e) =>
+                    setNewItem((prev) => ({ ...prev, name: e.target.value }))
+                  }
                   placeholder="e.g., Credit Card, Netflix, Car EMI"
                   required
                 />
               </div>
               <div>
                 <Label htmlFor="type">Type</Label>
-                <Select 
-                  value={newItem.type} 
-                  onValueChange={(value) => setNewItem(prev => ({ ...prev, type: value }))}
+                <Select
+                  value={newItem.type}
+                  onValueChange={(value) =>
+                    setNewItem((prev) => ({ ...prev, type: value }))
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -317,16 +478,20 @@ const DebtManager = ({ userId }: DebtManagerProps) => {
                   type="number"
                   min="1"
                   value={newItem.amount}
-                  onChange={(e) => setNewItem(prev => ({ ...prev, amount: e.target.value }))}
+                  onChange={(e) =>
+                    setNewItem((prev) => ({ ...prev, amount: e.target.value }))
+                  }
                   placeholder="e.g., 5000"
                   required
                 />
               </div>
               <div>
                 <Label htmlFor="frequency">Frequency</Label>
-                <Select 
-                  value={newItem.frequency} 
-                  onValueChange={(value) => setNewItem(prev => ({ ...prev, frequency: value }))}
+                <Select
+                  value={newItem.frequency}
+                  onValueChange={(value) =>
+                    setNewItem((prev) => ({ ...prev, frequency: value }))
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -344,7 +509,12 @@ const DebtManager = ({ userId }: DebtManagerProps) => {
                   id="due_date"
                   type="date"
                   value={newItem.due_date}
-                  onChange={(e) => setNewItem(prev => ({ ...prev, due_date: e.target.value }))}
+                  onChange={(e) =>
+                    setNewItem((prev) => ({
+                      ...prev,
+                      due_date: e.target.value,
+                    }))
+                  }
                 />
               </div>
             </div>
@@ -366,10 +536,15 @@ const DebtManager = ({ userId }: DebtManagerProps) => {
           <CardContent>
             <div className="space-y-4">
               {activeItems.map((item) => {
-                const daysUntilDue = item.due_date ? getDaysUntilDue(item.due_date) : null;
-                
+                const daysUntilDue = item.due_date
+                  ? getDaysUntilDue(item.due_date)
+                  : null;
+
                 return (
-                  <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
                     <div className="flex items-center gap-3">
                       {getStatusIcon(item.status)}
                       <div>
@@ -384,10 +559,11 @@ const DebtManager = ({ userId }: DebtManagerProps) => {
                           {item.due_date && (
                             <span className="text-sm text-muted-foreground">
                               <Calendar className="w-3 h-3 inline mr-1" />
-                              {daysUntilDue !== null && daysUntilDue >= 0 
-                                ? `Due in ${daysUntilDue} day${daysUntilDue > 1 ? 's' : ''}`
-                                : 'Overdue'
-                              }
+                              {daysUntilDue !== null && daysUntilDue >= 0
+                                ? `Due in ${daysUntilDue} day${
+                                    daysUntilDue > 1 ? "s" : ""
+                                  }`
+                                : "Overdue"}
                             </span>
                           )}
                         </div>
@@ -426,12 +602,17 @@ const DebtManager = ({ userId }: DebtManagerProps) => {
           <CardContent>
             <div className="space-y-2">
               {paidItems.slice(0, 5).map((item) => (
-                <div key={item.id} className="flex items-center justify-between p-2 bg-green-50 rounded">
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between p-2 bg-green-50 rounded"
+                >
                   <div className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-green-600" />
                     <span className="font-medium">{item.name}</span>
                   </div>
-                  <Badge variant="secondary">₹{item.amount.toLocaleString()}</Badge>
+                  <Badge variant="secondary">
+                    ₹{item.amount.toLocaleString()}
+                  </Badge>
                 </div>
               ))}
             </div>

@@ -1,20 +1,27 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { 
-  ShoppingCart, 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  ShoppingCart,
+  CheckCircle,
+  XCircle,
+  Clock,
   Loader2,
   TrendingUp,
-  AlertTriangle
-} from 'lucide-react';
+  AlertTriangle,
+} from "lucide-react";
+import { formatAIContent } from "./ai-format";
 
 interface PurchaseAdvisorProps {
   userId?: string;
@@ -30,11 +37,13 @@ interface PurchaseDecision {
 }
 
 const PurchaseAdvisor = ({ userId }: PurchaseAdvisorProps) => {
-  const [itemName, setItemName] = useState('');
-  const [itemPrice, setItemPrice] = useState('');
+  const [itemName, setItemName] = useState("");
+  const [itemPrice, setItemPrice] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [currentAdvice, setCurrentAdvice] = useState<string | null>(null);
-  const [recentDecisions, setRecentDecisions] = useState<PurchaseDecision[]>([]);
+  const [recentDecisions, setRecentDecisions] = useState<PurchaseDecision[]>(
+    []
+  );
   const { toast } = useToast();
 
   const loadRecentDecisions = async () => {
@@ -42,16 +51,16 @@ const PurchaseAdvisor = ({ userId }: PurchaseAdvisorProps) => {
 
     try {
       const { data, error } = await supabase
-        .from('purchase_decisions')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
+        .from("purchase_decisions")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
         .limit(5);
 
       if (error) throw error;
       setRecentDecisions(data || []);
     } catch (error: any) {
-      console.error('Error loading recent decisions:', error);
+      console.error("Error loading recent decisions:", error);
     }
   };
 
@@ -67,24 +76,27 @@ const PurchaseAdvisor = ({ userId }: PurchaseAdvisorProps) => {
     setCurrentAdvice(null);
 
     try {
-      const { data, error } = await supabase.functions.invoke('financial-ai-advisor', {
-        body: {
-          message: `Should I buy ${itemName} for ₹${itemPrice}?`,
-          type: 'purchase_advice',
-          context: {
-            itemName,
-            itemPrice: parseFloat(itemPrice)
+      const { data, error } = await supabase.functions.invoke(
+        "financial-ai-advisor",
+        {
+          body: {
+            message: `Should I buy ${itemName} for ₹${itemPrice}?`,
+            type: "purchase_advice",
+            context: {
+              itemName,
+              itemPrice: parseFloat(itemPrice),
+            },
+            userId,
           },
-          userId
         }
-      });
+      );
 
       if (error) throw error;
 
       setCurrentAdvice(data.response);
-      setItemName('');
-      setItemPrice('');
-      
+      setItemName("");
+      setItemPrice("");
+
       // Reload recent decisions
       await loadRecentDecisions();
 
@@ -105,29 +117,37 @@ const PurchaseAdvisor = ({ userId }: PurchaseAdvisorProps) => {
 
   const getRecommendationIcon = (recommendation: string) => {
     switch (recommendation) {
-      case 'approve': return <CheckCircle className="w-4 h-4 text-green-600" />;
-      case 'reject': return <XCircle className="w-4 h-4 text-red-600" />;
-      case 'wait': return <Clock className="w-4 h-4 text-yellow-600" />;
-      default: return <AlertTriangle className="w-4 h-4 text-gray-500" />;
+      case "approve":
+        return <CheckCircle className="w-4 h-4 text-green-600" />;
+      case "reject":
+        return <XCircle className="w-4 h-4 text-red-600" />;
+      case "wait":
+        return <Clock className="w-4 h-4 text-yellow-600" />;
+      default:
+        return <AlertTriangle className="w-4 h-4 text-gray-500" />;
     }
   };
 
   const getRecommendationColor = (recommendation: string) => {
     switch (recommendation) {
-      case 'approve': return 'text-green-600 bg-green-50 border-green-200';
-      case 'reject': return 'text-red-600 bg-red-50 border-red-200';
-      case 'wait': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+      case "approve":
+        return "text-green-600 bg-green-50 border-green-200";
+      case "reject":
+        return "text-red-600 bg-red-50 border-red-200";
+      case "wait":
+        return "text-yellow-600 bg-yellow-50 border-yellow-200";
+      default:
+        return "text-gray-600 bg-gray-50 border-gray-200";
     }
   };
 
   const popularItems = [
-    { name: 'iPhone 15', price: '79900' },
-    { name: 'MacBook Air M2', price: '114900' },
-    { name: 'Sony WH-1000XM5', price: '29990' },
-    { name: 'iPad Air', price: '59900' },
-    { name: 'Gaming Chair', price: '15000' },
-    { name: 'Course Subscription', price: '4999' }
+    { name: "iPhone 15", price: "79900" },
+    { name: "MacBook Air M2", price: "114900" },
+    { name: "Sony WH-1000XM5", price: "29990" },
+    { name: "iPad Air", price: "59900" },
+    { name: "Gaming Chair", price: "15000" },
+    { name: "Course Subscription", price: "4999" },
   ];
 
   return (
@@ -139,7 +159,8 @@ const PurchaseAdvisor = ({ userId }: PurchaseAdvisorProps) => {
             "Can I Buy This?" Advisor
           </CardTitle>
           <CardDescription>
-            Get AI-powered recommendations on whether you can afford a purchase based on your financial health
+            Get AI-powered recommendations on whether you can afford a purchase
+            based on your financial health
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -169,7 +190,11 @@ const PurchaseAdvisor = ({ userId }: PurchaseAdvisorProps) => {
               </div>
             </div>
 
-            <Button type="submit" disabled={isAnalyzing} className="w-full btn-hero">
+            <Button
+              type="submit"
+              disabled={isAnalyzing}
+              className="w-full btn-hero"
+            >
               {isAnalyzing ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -201,7 +226,9 @@ const PurchaseAdvisor = ({ userId }: PurchaseAdvisorProps) => {
                 >
                   <div>
                     <div className="font-medium text-xs">{item.name}</div>
-                    <div className="text-xs text-muted-foreground">₹{item.price}</div>
+                    <div className="text-xs text-muted-foreground">
+                      ₹{item.price}
+                    </div>
                   </div>
                 </Button>
               ))}
@@ -218,7 +245,7 @@ const PurchaseAdvisor = ({ userId }: PurchaseAdvisorProps) => {
           </CardHeader>
           <CardContent>
             <div className="bg-muted/50 rounded-lg p-4">
-              <p className="whitespace-pre-wrap">{currentAdvice}</p>
+              {formatAIContent(currentAdvice)}
             </div>
           </CardContent>
         </Card>
@@ -247,14 +274,18 @@ const PurchaseAdvisor = ({ userId }: PurchaseAdvisorProps) => {
                         ₹{decision.item_price.toLocaleString()}
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      {decision.reasoning}
-                    </p>
+                    <div className="text-sm text-muted-foreground mb-2">
+                      {formatAIContent(decision.reasoning)}
+                    </div>
                     <p className="text-xs text-muted-foreground">
                       {new Date(decision.created_at).toLocaleDateString()}
                     </p>
                   </div>
-                  <div className={`flex items-center gap-2 px-3 py-1 rounded-full border ${getRecommendationColor(decision.ai_recommendation)}`}>
+                  <div
+                    className={`flex items-center gap-2 px-3 py-1 rounded-full border ${getRecommendationColor(
+                      decision.ai_recommendation
+                    )}`}
+                  >
                     {getRecommendationIcon(decision.ai_recommendation)}
                     <span className="text-sm font-medium capitalize">
                       {decision.ai_recommendation}
