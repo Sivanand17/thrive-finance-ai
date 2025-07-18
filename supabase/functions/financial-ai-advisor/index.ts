@@ -2,6 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 
+<<<<<<< HEAD
 const openAIApiKey = Deno.env.get("OPENAI_API_KEY");
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -15,6 +16,11 @@ if (!supabaseServiceKey)
   throw new Error(
     "SUPABASE_SERVICE_ROLE_KEY is not set in Edge Function environment"
   );
+=======
+const openAIApiKey = Deno.env.get('OPENAI_API_KEY') || Deno.env.get('OPEN_API_KEY');
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+>>>>>>> cc00acb52af95c2461dec170f5799b022e1e6f24
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -28,8 +34,17 @@ serve(async (req) => {
   }
 
   try {
+<<<<<<< HEAD
     const { message, type, context, userId, history } = await req.json();
 
+=======
+    if (!openAIApiKey) {
+      throw new Error('OpenAI API key not configured');
+    }
+
+    const { message, type, context, userId } = await req.json();
+    
+>>>>>>> cc00acb52af95c2461dec170f5799b022e1e6f24
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get user's financial profile
@@ -143,7 +158,13 @@ Provide practical, actionable financial advice. Be encouraging but realistic. Al
       }),
     });
 
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+    }
+
     const data = await response.json();
+<<<<<<< HEAD
     if (!response.ok) {
       throw new Error(
         `OpenAI API error: ${data.error?.message || response.statusText}`
@@ -152,6 +173,13 @@ Provide practical, actionable financial advice. Be encouraging but realistic. Al
     if (!data.choices || !data.choices[0]?.message?.content) {
       throw new Error("OpenAI API did not return a valid response.");
     }
+=======
+    
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      throw new Error('Invalid response from OpenAI API');
+    }
+    
+>>>>>>> cc00acb52af95c2461dec170f5799b022e1e6f24
     const aiResponse = data.choices[0].message.content;
 
     // Save conversation to database
