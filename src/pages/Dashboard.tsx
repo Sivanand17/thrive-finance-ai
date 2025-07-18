@@ -44,10 +44,14 @@ import PurchaseAdvisor from "@/components/PurchaseAdvisor";
 import BudgetPlanner from "@/components/BudgetPlanner";
 import DebtManager from "@/components/DebtManager";
 import GoalTracker from "@/components/GoalTracker";
-<<<<<<< HEAD
 import WhatIfSimulator from "../components/WhatIfSimulator";
 import { formatAIContent } from "../components/ai-format";
 import { sendPushNotification } from "../main";
+import PersonalizedInsights from "@/components/PersonalizedInsights";
+import Gamification from "@/components/Gamification";
+import VoiceInput from "@/components/VoiceInput";
+import WhatIfTools from "@/components/WhatIfTools";
+import ExplainableAI from "@/components/ExplainableAI";
 import { ChartContainer } from "../components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, Tooltip } from "recharts";
 import {
@@ -118,17 +122,6 @@ interface TrendData {
 
 // Use environment variable for OpenAI key
 const OPENAI_FALLBACK_KEY = import.meta.env.VITE_OPENAI_API_KEY || ""; // Set this in .env.local, never commit your key
-=======
-import PersonalizedInsights from "@/components/PersonalizedInsights";
-import Gamification from "@/components/Gamification";
-import VoiceInput from "@/components/VoiceInput";
-import WhatIfTools from "@/components/WhatIfTools";
-import ExplainableAI from "@/components/ExplainableAI";
-import WhatIfSimulator from "@/components/WhatIfSimulator";
-import { formatAIContent } from "@/components/ai-format";
-import { sendPushNotification } from "@/utils/notifications";
-import confetti from "canvas-confetti";
->>>>>>> cc00acb52af95c2461dec170f5799b022e1e6f24
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -709,12 +702,8 @@ const Dashboard = () => {
     { id: "budget", label: "Budget Planner", icon: PiggyBank },
     { id: "debts", label: "Debts & Subscriptions", icon: CreditCard },
     { id: "goals", label: "Financial Goals", icon: Target },
-<<<<<<< HEAD
     { id: "whatif", label: "What-If Simulator", icon: AlertCircle }, // Add What-If tab
     { id: "learn", label: "Learn", icon: Calendar },
-=======
-    { id: "whatif", label: "What-If Simulator", icon: AlertCircle },
->>>>>>> cc00acb52af95c2461dec170f5799b022e1e6f24
   ];
 
   return (
