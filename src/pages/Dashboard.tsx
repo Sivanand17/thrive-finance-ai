@@ -41,6 +41,10 @@ import Gamification from "@/components/Gamification";
 import VoiceInput from "@/components/VoiceInput";
 import WhatIfTools from "@/components/WhatIfTools";
 import ExplainableAI from "@/components/ExplainableAI";
+import WhatIfSimulator from "@/components/WhatIfSimulator";
+import { formatAIContent } from "@/components/ai-format";
+import { sendPushNotification } from "@/utils/notifications";
+import confetti from "canvas-confetti";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -154,6 +158,7 @@ const Dashboard = () => {
     { id: "budget", label: "Budget Planner", icon: PiggyBank },
     { id: "debts", label: "Debts & Subscriptions", icon: CreditCard },
     { id: "goals", label: "Financial Goals", icon: Target },
+    { id: "whatif", label: "What-If Simulator", icon: AlertCircle },
   ];
 
   return (
@@ -338,6 +343,7 @@ const Dashboard = () => {
             {activeTab === "budget" && <BudgetPlanner userId={user?.id} />}
             {activeTab === "debts" && <DebtManager userId={user?.id} />}
             {activeTab === "goals" && <GoalTracker userId={user?.id} />}
+            {activeTab === "whatif" && <WhatIfSimulator />}
           </div>
         </div>
       </div>
