@@ -39,12 +39,50 @@ serve(async (req) => {
       .eq("user_id", userId)
       .single();
 
+    if (!financialProfile) {
+      return new Response(
+        JSON.stringify({
+          error:
+            "No financial profile found for this user. Please complete your financial setup.",
+        }),
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
     // Get user's goals, debts, and budget
     const [goalsRes, debtsRes, budgetRes] = await Promise.all([
       supabase.from("financial_goals").select("*").eq("user_id", userId),
       supabase.from("debts_subscriptions").select("*").eq("user_id", userId),
       supabase.from("budget_categories").select("*").eq("user_id", userId),
     ]);
+
+    if (!goalsRes.data || goalsRes.data.length === 0) {
+      return new Response(
+        JSON.stringify({
+          error:
+            "No financial goals found for this user. Please add at least one goal.",
+        }),
+        { status: 400, headers: corsHeaders }
+      );
+    }
+    if (!debtsRes.data || debtsRes.data.length === 0) {
+      return new Response(
+        JSON.stringify({
+          error:
+            "No debts or subscriptions found for this user. Please add at least one debt or subscription.",
+        }),
+        { status: 400, headers: corsHeaders }
+      );
+    }
+    if (!budgetRes.data || budgetRes.data.length === 0) {
+      return new Response(
+        JSON.stringify({
+          error:
+            "No budget categories found for this user. Please add at least one budget category.",
+        }),
+        { status: 400, headers: corsHeaders }
+      );
+    }
 
     const systemPrompt = `You are FinanceAI, a helpful financial advisor for young professionals. 
 

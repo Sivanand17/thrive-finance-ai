@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 import { User, Session } from "@supabase/supabase-js";
 import {
   Bot,
@@ -35,9 +36,7 @@ import {
   Lightbulb,
 } from "lucide-react";
 import { format } from "date-fns";
-import { useRef } from "react";
 import confetti from "canvas-confetti";
-
 import { ThemeToggle } from "@/components/ThemeToggle";
 import AIChat from "@/components/AIChat";
 import FinancialSetup from "@/components/FinancialSetup";
@@ -45,7 +44,6 @@ import PurchaseAdvisor from "@/components/PurchaseAdvisor";
 import BudgetPlanner from "@/components/BudgetPlanner";
 import DebtManager from "@/components/DebtManager";
 import GoalTracker from "@/components/GoalTracker";
-<<<<<<< HEAD
 import WhatIfSimulator from "../components/WhatIfSimulator";
 import { formatAIContent } from "../components/ai-format";
 import { sendPushNotification } from "../main";
@@ -65,23 +63,72 @@ import {
 } from "../components/ui/accordion";
 import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
 
-const OPENAI_FALLBACK_KEY = "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"; // TODO: Replace with your OpenAI API key (never expose in production)
-=======
-import PersonalizedInsights from "@/components/PersonalizedInsights";
-import Gamification from "@/components/Gamification";
-import VoiceInput from "@/components/VoiceInput";
-import WhatIfTools from "@/components/WhatIfTools";
-import ExplainableAI from "@/components/ExplainableAI";
->>>>>>> e7edcc5ec430b55a93e111d30cd7c22e4da4dded
+// Define types for financial profile, budget category, goal, bill, trend, and debt
+interface FinancialProfile {
+  user_id: string;
+  credit_score: number;
+  monthly_income: number;
+  monthly_expenses: number;
+  savings_balance: number;
+  debt_amount: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface BudgetCategory {
+  id: string;
+  name: string;
+  spent_amount: number;
+  allocated_amount: number;
+}
+
+interface Goal {
+  id: string;
+  user_id: string;
+  category: string;
+  current_amount: number;
+  target_amount: number;
+  status: string;
+  created_at: string;
+}
+
+interface Bill {
+  id: string;
+  name: string;
+  due_date: string;
+  amount: number;
+}
+
+interface Debt {
+  id: string;
+  user_id: string;
+  name: string;
+  amount: number;
+  due_date: string;
+  status: string;
+}
+
+interface TrendData {
+  month: string;
+  networth: number;
+  spending: number;
+  income: number;
+}
+
+// Use environment variable for OpenAI key
+const OPENAI_FALLBACK_KEY = import.meta.env.VITE_OPENAI_API_KEY || ""; // Set this in .env.local, never commit your key
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [financialProfile, setFinancialProfile] = useState<any>(null);
+  const [financialProfile, setFinancialProfile] =
+    useState<FinancialProfile | null>(null);
   // Insights state
-  const [overspentCategories, setOverspentCategories] = useState<any[]>([]);
-  const [emergencyGoal, setEmergencyGoal] = useState<any | null>(null);
-  const [upcomingBills, setUpcomingBills] = useState<any[]>([]);
+  const [overspentCategories, setOverspentCategories] = useState<
+    BudgetCategory[]
+  >([]);
+  const [emergencyGoal, setEmergencyGoal] = useState<Goal | null>(null);
+  const [upcomingBills, setUpcomingBills] = useState<Bill[]>([]);
   const [creditAlert, setCreditAlert] = useState<string | null>(null);
   const [nextSteps, setNextSteps] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
@@ -91,8 +138,8 @@ const Dashboard = () => {
   const [achievements, setAchievements] = useState<string[]>([]);
   const [streak, setStreak] = useState<number>(0);
   const lastCheckinRef = useRef<string | null>(null);
-  const subscriptionRefs = useRef<any[]>([]);
-  const [trendData, setTrendData] = useState<any[]>([]);
+  const subscriptionRefs = useRef<RealtimeChannel[]>([]);
+  const [trendData, setTrendData] = useState<TrendData[]>([]);
   const overspendNotified = useRef(false);
   const billNotified = useRef(false);
   const creditNotified = useRef(false);
@@ -101,41 +148,16 @@ const Dashboard = () => {
   const [aiRetryCount, setAiRetryCount] = useState(0);
 
   useEffect(() => {
-    // Mock user data for development
-    const mockUser = {
-      id: 'mock-user-id',
-      email: 'demo@financeai.com',
-      user_metadata: {
-        full_name: 'Demo User'
-      }
-<<<<<<< HEAD
-    });
-
-    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-
-      if (!session?.user) {
-        navigate("/auth");
-      } else {
+      if (session?.user) {
         loadFinancialProfile(session.user.id);
         loadInsights(session.user.id);
-        loadGamification(session.user.id);
       }
       setIsLoading(false);
     });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
-=======
-    };
-    
-    setUser(mockUser as any);
-    loadFinancialProfile(mockUser.id);
-    setIsLoading(false);
   }, []);
->>>>>>> e7edcc5ec430b55a93e111d30cd7c22e4da4dded
 
   useEffect(() => {
     if (achievements.includes("Goal Achiever")) {
@@ -171,7 +193,7 @@ const Dashboard = () => {
           }
         )
         .subscribe();
-      subscriptionRefs.current.push(channel);
+      subscriptionRefs.current.push(channel as RealtimeChannel);
     });
     return () => {
       subscriptionRefs.current.forEach((channel) => {
@@ -190,7 +212,7 @@ const Dashboard = () => {
         d.setMonth(d.getMonth() - (5 - i));
         return d.toISOString().slice(0, 7); // YYYY-MM
       });
-      const trendArr: any[] = [];
+      const trendArr: TrendData[] = [];
       for (const month of months) {
         // Budget (spending)
         const { data: budgetData } = await supabase
@@ -236,7 +258,7 @@ const Dashboard = () => {
 
   const loadFinancialProfile = async (userId: string) => {
     // Mock financial profile for development
-    const mockProfile = {
+    const mockProfile: FinancialProfile = {
       user_id: userId,
       credit_score: 720,
       monthly_income: 75000,
@@ -244,26 +266,25 @@ const Dashboard = () => {
       savings_balance: 125000,
       debt_amount: 35000,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     };
-    
     setFinancialProfile(mockProfile);
   };
 
   // Load insights (budget overspending & emergency fund progress)
   const loadInsights = async (uid: string) => {
+    console.log("[AI DEBUG] loadInsights called with uid:", uid);
     try {
       const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
-
       // Budget categories for current month
       const { data: budgetData } = await supabase
         .from("budget_categories")
         .select("*")
         .eq("user_id", uid)
         .eq("month_year", currentMonth);
-
+      console.log("[AI DEBUG] budgetData:", budgetData);
       if (budgetData) {
-        const overspent = budgetData.filter(
+        const overspent = (budgetData as BudgetCategory[]).filter(
           (cat) => (cat.spent_amount || 0) > (cat.allocated_amount || 0)
         );
         setOverspentCategories(overspent);
@@ -274,7 +295,6 @@ const Dashboard = () => {
           overspendNotified.current = true;
         }
       }
-
       // Emergency fund goal (take the most recent active one)
       const { data: goalsData } = await supabase
         .from("financial_goals")
@@ -283,9 +303,10 @@ const Dashboard = () => {
         .eq("category", "emergency")
         .order("created_at", { ascending: false })
         .limit(1);
-
-      setEmergencyGoal(goalsData && goalsData.length > 0 ? goalsData[0] : null);
-
+      console.log("[AI DEBUG] goalsData:", goalsData);
+      setEmergencyGoal(
+        goalsData && goalsData.length > 0 ? (goalsData[0] as Goal) : null
+      );
       // Upcoming bills within next 7 days
       const today = new Date();
       const nextWeek = new Date();
@@ -295,9 +316,9 @@ const Dashboard = () => {
         .select("*")
         .eq("user_id", uid)
         .neq("due_date", null);
-
+      console.log("[AI DEBUG] billsData:", billsData);
       if (billsData) {
-        const upcoming = billsData.filter((b) => {
+        const upcoming = (billsData as Bill[]).filter((b) => {
           const due = new Date(b.due_date);
           return due >= today && due <= nextWeek;
         });
@@ -309,14 +330,13 @@ const Dashboard = () => {
           billNotified.current = true;
         }
       }
-
       // Credit utilization alert using expenses vs income (proxy)
       const { data: profileData } = await supabase
         .from("financial_profiles")
         .select("*")
         .eq("user_id", uid)
         .single();
-
+      console.log("[AI DEBUG] profileData:", profileData);
       if (profileData) {
         const ratio =
           (profileData.monthly_expenses || 0) /
@@ -333,108 +353,184 @@ const Dashboard = () => {
           creditNotified.current = true;
         }
       }
-
       // Weekly AI next steps (generate once per day)
+      setAiError(false);
+      setNextSteps(null);
       try {
-        setAiError(false);
-        const { data: aiData } = await supabase.functions.invoke(
-          "financial-ai-advisor",
-          {
+        console.log(
+          "[AI DEBUG] Calling Supabase Edge Function financial-ai-advisor..."
+        );
+        const { data: aiData, error: supabaseError } =
+          await supabase.functions.invoke("financial-ai-advisor", {
             body: {
               message:
                 "Give me 3 actionable next steps for my finances for this week",
               type: "next_steps",
               userId: uid,
             },
-          }
-        );
-        if (aiData?.response) {
+          });
+        console.log("[AI DEBUG] Supabase response:", aiData, supabaseError);
+        if (supabaseError || aiData?.error) {
+          setAiError(true);
+          setNextSteps(
+            aiData?.error ||
+              supabaseError?.message ||
+              "AI plan error from Supabase. Check logs."
+          );
+          console.error(
+            "[AI DEBUG] Supabase AI error:",
+            aiData?.error || supabaseError
+          );
+        } else if (aiData?.response) {
           setNextSteps(aiData.response);
           setAiError(false);
+          console.log("[AI DEBUG] Supabase AI plan:", aiData.response);
         } else {
           // Fallback to OpenAI directly
-          const openaiRes = await fetch(
-            "https://api.openai.com/v1/chat/completions",
-            {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${OPENAI_FALLBACK_KEY}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                model: "gpt-4o-mini",
-                messages: [
-                  {
-                    role: "system",
-                    content:
-                      "You are FinanceAI, a helpful financial advisor for young professionals. Give 3 actionable next steps for the user's finances for this week. Be concise and practical.",
-                  },
-                  {
-                    role: "user",
-                    content:
-                      "Give me 3 actionable next steps for my finances for this week",
-                  },
-                ],
-                temperature: 0.7,
-                max_tokens: 500,
-              }),
-            }
+          console.log(
+            "[AI DEBUG] Supabase returned no response, falling back to OpenAI. Key present:",
+            !!OPENAI_FALLBACK_KEY
           );
-          const openaiData = await openaiRes.json();
-          if (openaiData.choices && openaiData.choices[0]?.message?.content) {
-            setNextSteps(
-              "[OpenAI Fallback] " + openaiData.choices[0].message.content
-            );
-            setAiError(false);
-          } else {
+          if (OPENAI_FALLBACK_KEY === "") {
             setAiError(true);
+            setNextSteps(
+              "OpenAI API key is missing. Please set it in .env.local."
+            );
+            console.error("[AI DEBUG] OpenAI key missing");
+          } else {
+            const openaiRes = await fetch(
+              "https://api.openai.com/v1/chat/completions",
+              {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${OPENAI_FALLBACK_KEY}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  model: "gpt-4o-mini",
+                  messages: [
+                    {
+                      role: "system",
+                      content:
+                        "You are FinanceAI, a helpful financial advisor for young professionals. Give 3 actionable next steps for the user's finances for this week. Be concise and practical.",
+                    },
+                    {
+                      role: "user",
+                      content:
+                        "Give me 3 actionable next steps for my finances for this week",
+                    },
+                  ],
+                  temperature: 0.7,
+                  max_tokens: 500,
+                }),
+              }
+            );
+            const openaiData = await openaiRes.json();
+            console.log("[AI DEBUG] OpenAI response:", openaiData);
+            if (openaiData.error) {
+              setAiError(true);
+              setNextSteps(
+                openaiData.error.message || "OpenAI API error. Check logs."
+              );
+              console.error("[AI DEBUG] OpenAI API error:", openaiData.error);
+            } else if (
+              openaiData.choices &&
+              openaiData.choices[0]?.message?.content
+            ) {
+              setNextSteps(openaiData.choices[0].message.content);
+              setAiError(false);
+              console.log(
+                "[AI DEBUG] OpenAI AI plan:",
+                openaiData.choices[0].message.content
+              );
+            } else {
+              setAiError(true);
+              setNextSteps("AI plan could not be generated. Please try again.");
+              console.error(
+                "[AI DEBUG] OpenAI did not return a valid response:",
+                openaiData
+              );
+            }
           }
         }
       } catch (e) {
         // Fallback to OpenAI directly if Supabase call throws
-        try {
-          const openaiRes = await fetch(
-            "https://api.openai.com/v1/chat/completions",
-            {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${OPENAI_FALLBACK_KEY}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                model: "gpt-4o-mini",
-                messages: [
-                  {
-                    role: "system",
-                    content:
-                      "You are FinanceAI, a helpful financial advisor for young professionals. Give 3 actionable next steps for the user's finances for this week. Be concise and practical.",
-                  },
-                  {
-                    role: "user",
-                    content:
-                      "Give me 3 actionable next steps for my finances for this week",
-                  },
-                ],
-                temperature: 0.7,
-                max_tokens: 500,
-              }),
-            }
-          );
-          const openaiData = await openaiRes.json();
-          if (openaiData.choices && openaiData.choices[0]?.message?.content) {
-            setNextSteps(
-              "[OpenAI Fallback] " + openaiData.choices[0].message.content
-            );
-            setAiError(false);
-          } else {
-            setAiError(true);
-          }
-        } catch (err) {
+        console.error("[AI DEBUG] Supabase fetch threw error:", e);
+        if (OPENAI_FALLBACK_KEY === "") {
           setAiError(true);
+          setNextSteps(
+            "OpenAI API key is missing. Please set it in .env.local."
+          );
+          console.error("[AI DEBUG] OpenAI key missing (catch)");
+        } else {
+          try {
+            const openaiRes = await fetch(
+              "https://api.openai.com/v1/chat/completions",
+              {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${OPENAI_FALLBACK_KEY}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  model: "gpt-4o-mini",
+                  messages: [
+                    {
+                      role: "system",
+                      content:
+                        "You are FinanceAI, a helpful financial advisor for young professionals. Give 3 actionable next steps for the user's finances for this week. Be concise and practical.",
+                    },
+                    {
+                      role: "user",
+                      content:
+                        "Give me 3 actionable next steps for my finances for this week",
+                    },
+                  ],
+                  temperature: 0.7,
+                  max_tokens: 500,
+                }),
+              }
+            );
+            const openaiData = await openaiRes.json();
+            console.log("[AI DEBUG] OpenAI response (catch):", openaiData);
+            if (openaiData.error) {
+              setAiError(true);
+              setNextSteps(
+                openaiData.error.message || "OpenAI API error. Check logs."
+              );
+              console.error(
+                "[AI DEBUG] OpenAI API error (catch):",
+                openaiData.error
+              );
+            } else if (
+              openaiData.choices &&
+              openaiData.choices[0]?.message?.content
+            ) {
+              setNextSteps(openaiData.choices[0].message.content);
+              setAiError(false);
+              console.log(
+                "[AI DEBUG] OpenAI AI plan (catch):",
+                openaiData.choices[0].message.content
+              );
+            } else {
+              setAiError(true);
+              setNextSteps("AI plan could not be generated. Please try again.");
+              console.error(
+                "[AI DEBUG] OpenAI did not return a valid response (catch):",
+                openaiData
+              );
+            }
+          } catch (err) {
+            setAiError(true);
+            setNextSteps("AI plan could not be generated. Please try again.");
+            console.error("[AI DEBUG] OpenAI fetch error (catch):", err);
+          }
         }
       }
     } catch (err) {
-      console.error("Error loading insights", err);
+      setAiError(true);
+      setNextSteps("Unexpected error loading AI plan. Please try again.");
+      console.error("[AI DEBUG] Error loading insights:", err);
     }
   };
 
@@ -473,7 +569,9 @@ const Dashboard = () => {
       achievementNotified.current.push("First ₹10,000 Saved");
     }
     // 3 months of on-time payments
-    const paidDebts = (debts || []).filter((d: any) => d.status === "paid");
+    const paidDebts = ((debts as Debt[]) || []).filter(
+      (d) => d.status === "paid"
+    );
     if (
       paidDebts.length >= 3 &&
       !achievementNotified.current.includes("3 Months of On-Time Payments")
@@ -486,7 +584,7 @@ const Dashboard = () => {
     }
     // Goal completed
     if (
-      (goals || []).some((g: any) => g.status === "completed") &&
+      ((goals as Goal[]) || []).some((g) => g.status === "completed") &&
       !achievementNotified.current.includes("Goal Achiever")
     ) {
       newAchievements.push("Goal Achiever");
@@ -533,25 +631,23 @@ const Dashboard = () => {
     try {
       // Clean up auth state
       cleanupAuthState();
-
       // Attempt global sign out
       try {
         await supabase.auth.signOut({ scope: "global" });
       } catch (err) {
         // Continue even if this fails
       }
-
       toast({
         title: "Signed out successfully",
         description: "You have been logged out of your account.",
       });
-
       // Force page reload for clean state
       window.location.href = "/";
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as Error;
       toast({
         title: "Error signing out",
-        description: error.message,
+        description: err.message,
         variant: "destructive",
       });
     }
@@ -898,7 +994,7 @@ const Dashboard = () => {
                                 Upcoming Bills (next 7 days)
                               </p>
                               <ul className="list-disc ml-5 space-y-1 text-sm">
-                                {upcomingBills.map((bill: any) => (
+                                {upcomingBills.map((bill: Bill) => (
                                   <li
                                     key={bill.id}
                                     className="flex items-center gap-1"

@@ -13,10 +13,10 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
-import { 
-  ArrowLeft, 
-  Mail, 
-  Lock, 
+import {
+  ArrowLeft,
+  Mail,
+  Lock,
   User as UserIcon,
   Shield,
   CheckCircle,
@@ -38,14 +38,14 @@ const Auth = () => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
+      setSession(session);
+      setUser(session?.user ?? null);
+
       if (session?.user && event === "SIGNED_IN") {
-          // Redirect to dashboard after successful login
-          setTimeout(() => {
+        // Redirect to dashboard after successful login
+        setTimeout(() => {
           navigate("/dashboard");
-          }, 500);
+        }, 500);
       }
     });
 
@@ -53,7 +53,7 @@ const Auth = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
         navigate("/dashboard");
       }
@@ -69,13 +69,6 @@ const Auth = () => {
     try {
       // Clean up existing auth state first
       cleanupAuthState();
-<<<<<<< HEAD
-      
-      const redirectUrl = `${window.location.origin}/dashboard`;
-      
-=======
-
->>>>>>> e7edcc5ec430b55a93e111d30cd7c22e4da4dded
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -85,19 +78,18 @@ const Auth = () => {
 
       if (data.user) {
         // Now sign them in immediately to bypass email confirmation
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
+        const { data: signInData, error: signInError } =
+          await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
         if (signInError) throw signInError;
 
         toast({
           title: "Welcome to FinanceAI!",
           description: "Your account has been created successfully.",
         });
-<<<<<<< HEAD
-        
+
         // If Supabase did not create a session automatically (e.g. email confirmation required),
         // attempt to sign the user in programmatically so we can navigate to the dashboard.
         if (!data.session) {
@@ -117,14 +109,8 @@ const Auth = () => {
             return;
           }
         }
-
         // By this point we have a valid session – redirect to dashboard.
         navigate("/dashboard");
-=======
-
-        // Force immediate redirect
-        window.location.href = "/dashboard";
->>>>>>> e7edcc5ec430b55a93e111d30cd7c22e4da4dded
       }
     } catch (error) {
       const errorMessage =
@@ -155,7 +141,7 @@ const Auth = () => {
     try {
       // Clean up existing auth state first
       cleanupAuthState();
-      
+
       // Attempt global sign out
       try {
         await supabase.auth.signOut({ scope: "global" });
@@ -227,7 +213,7 @@ const Auth = () => {
               {isLogin ? "Welcome back" : "Create account"}
             </h1>
             <p className="text-muted-foreground">
-              {isLogin 
+              {isLogin
                 ? "Sign in to your FinanceAI account"
                 : "Join thousands improving their financial health"}
             </p>
@@ -237,7 +223,7 @@ const Auth = () => {
             <CardHeader>
               <CardTitle>{isLogin ? "Sign In" : "Sign Up"}</CardTitle>
               <CardDescription>
-                {isLogin 
+                {isLogin
                   ? "Enter your credentials to access your account"
                   : "Create your account to get started"}
               </CardDescription>
@@ -264,7 +250,7 @@ const Auth = () => {
                     </div>
                   </div>
                 )}
-                
+
                 <div>
                   <Label htmlFor="email">Email</Label>
                   <div className="relative">
@@ -280,7 +266,7 @@ const Auth = () => {
                     />
                   </div>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="password">Password</Label>
                   <div className="relative">
@@ -298,12 +284,12 @@ const Auth = () => {
                   </div>
                 </div>
 
-                <Button 
-                  type="submit" 
-                  className="w-full btn-hero" 
+                <Button
+                  type="submit"
+                  className="w-full btn-hero"
                   disabled={isLoading}
                 >
-                  {isLoading 
+                  {isLoading
                     ? isLogin
                       ? "Signing in..."
                       : "Creating account..."
@@ -344,7 +330,7 @@ const Auth = () => {
               their finances with AI-powered guidance.
             </p>
           </div>
-          
+
           <div className="space-y-6">
             {benefits.map((benefit, index) => (
               <div key={index} className="flex items-start gap-4">

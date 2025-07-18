@@ -13,11 +13,11 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  PiggyBank,
-  Plus,
-  Edit,
-  Trash2,
+import { 
+  PiggyBank, 
+  Plus, 
+  Edit, 
+  Trash2, 
   TrendingUp,
   AlertTriangle,
   CheckCircle,
@@ -84,7 +84,7 @@ const BudgetPlanner = ({ userId }: BudgetPlannerProps) => {
           filter: `user_id=eq.${userId},month_year=eq.${currentMonth}`,
         },
         (payload) => {
-          loadBudgetCategories();
+    loadBudgetCategories();
         }
       )
       .subscribe();
@@ -104,11 +104,11 @@ const BudgetPlanner = ({ userId }: BudgetPlannerProps) => {
 
     try {
       const { error } = await supabase.from("budget_categories").insert({
-        user_id: userId,
-        name: newCategory.name.trim(),
-        allocated_amount: parseFloat(newCategory.amount),
+          user_id: userId,
+          name: newCategory.name.trim(),
+          allocated_amount: parseFloat(newCategory.amount),
         month_year: currentMonth,
-      });
+        });
 
       if (error) throw error;
 
@@ -188,7 +188,7 @@ const BudgetPlanner = ({ userId }: BudgetPlannerProps) => {
       const { data, error } = await supabase.functions.invoke<AIResponse>(
         "financial-ai-advisor",
         {
-          body: {
+        body: {
             message: "Help me create a monthly budget plan",
             type: "budget_help",
             userId,
@@ -271,7 +271,7 @@ const BudgetPlanner = ({ userId }: BudgetPlannerProps) => {
             </div>
           </CardContent>
         </Card>
-
+        
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
@@ -282,7 +282,7 @@ const BudgetPlanner = ({ userId }: BudgetPlannerProps) => {
             </div>
           </CardContent>
         </Card>
-
+        
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Remaining</CardTitle>
@@ -350,8 +350,8 @@ const BudgetPlanner = ({ userId }: BudgetPlannerProps) => {
             </Button>
           </form>
 
-          <Button
-            variant="outline"
+          <Button 
+            variant="outline" 
             onClick={generateBudgetSuggestions}
             disabled={isLoading}
           >
@@ -400,7 +400,7 @@ const BudgetPlanner = ({ userId }: BudgetPlannerProps) => {
                 );
                 const isOverBudget =
                   category.spent_amount > category.allocated_amount;
-
+                
                 return (
                   <div key={category.id} className="border rounded-lg p-4">
                     <div className="flex items-center justify-between mb-2">
@@ -438,9 +438,9 @@ const BudgetPlanner = ({ userId }: BudgetPlannerProps) => {
                         </Button>
                       </div>
                     </div>
-
+                    
                     <Progress value={percentage} className="mb-2" />
-
+                    
                     <div className="flex justify-between text-sm text-muted-foreground">
                       <span>{percentage.toFixed(1)}% used</span>
                       <span>

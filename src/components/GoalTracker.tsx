@@ -20,11 +20,11 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Target,
-  Plus,
-  Edit,
-  Trash2,
+import { 
+  Target, 
+  Plus, 
+  Edit, 
+  Trash2, 
   TrendingUp,
   Smartphone,
   GraduationCap,
@@ -92,13 +92,13 @@ const GoalTracker = ({ userId }: GoalTrackerProps) => {
 
     try {
       const { error } = await supabase.from("financial_goals").insert({
-        user_id: userId,
-        title: newGoal.title.trim(),
-        target_amount: parseFloat(newGoal.target_amount),
-        target_date: newGoal.target_date || null,
-        category: newGoal.category,
+          user_id: userId,
+          title: newGoal.title.trim(),
+          target_amount: parseFloat(newGoal.target_amount),
+          target_date: newGoal.target_date || null,
+          category: newGoal.category,
         status: "active",
-      });
+        });
 
       if (error) throw error;
 
@@ -134,7 +134,7 @@ const GoalTracker = ({ userId }: GoalTrackerProps) => {
 
       const { error } = await supabase
         .from("financial_goals")
-        .update({
+        .update({ 
           current_amount: newAmount,
           status: status,
         })
@@ -233,12 +233,12 @@ const GoalTracker = ({ userId }: GoalTrackerProps) => {
     const target = new Date(targetDate);
     const diffTime = target.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
+    
     if (diffDays < 0) return "Overdue";
     if (diffDays === 0) return "Today";
     if (diffDays === 1) return "1 day";
     if (diffDays <= 30) return `${diffDays} days`;
-
+    
     const diffMonths = Math.floor(diffDays / 30);
     return `${diffMonths} month${diffMonths > 1 ? "s" : ""}`;
   };
@@ -289,7 +289,7 @@ const GoalTracker = ({ userId }: GoalTrackerProps) => {
             </div>
           </CardContent>
         </Card>
-
+        
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Total Saved</CardTitle>
@@ -300,7 +300,7 @@ const GoalTracker = ({ userId }: GoalTrackerProps) => {
             </div>
           </CardContent>
         </Card>
-
+        
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">
@@ -343,8 +343,8 @@ const GoalTracker = ({ userId }: GoalTrackerProps) => {
               </div>
               <div>
                 <Label htmlFor="category">Category</Label>
-                <Select
-                  value={newGoal.category}
+                <Select 
+                  value={newGoal.category} 
                   onValueChange={(value) =>
                     setNewGoal((prev) => ({ ...prev, category: value }))
                   }
@@ -426,7 +426,7 @@ const GoalTracker = ({ userId }: GoalTrackerProps) => {
                 const timeToGoal = goal.target_date
                   ? getTimeToGoal(goal.target_date)
                   : null;
-
+                
                 return (
                   <div key={goal.id} className="border rounded-lg p-4">
                     <div className="flex items-start justify-between mb-4">
