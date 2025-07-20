@@ -2,25 +2,20 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 
-<<<<<<< HEAD
-const openAIApiKey = Deno.env.get("OPENAI_API_KEY");
+const openAIApiKey = Deno.env.get("OPENAI_API_KEY") || Deno.env.get("OPEN_API_KEY");
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
 // Defensive: check env vars
-if (!openAIApiKey)
-  throw new Error("OPENAI_API_KEY is not set in Edge Function environment");
-if (!supabaseUrl)
+if (!openAIApiKey) {
+  console.warn("OPENAI_API_KEY is not set in Edge Function environment");
+}
+if (!supabaseUrl) {
   throw new Error("SUPABASE_URL is not set in Edge Function environment");
-if (!supabaseServiceKey)
-  throw new Error(
-    "SUPABASE_SERVICE_ROLE_KEY is not set in Edge Function environment"
-  );
-=======
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY') || Deno.env.get('OPEN_API_KEY');
-const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
->>>>>>> cc00acb52af95c2461dec170f5799b022e1e6f24
+}
+if (!supabaseServiceKey) {
+  throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set in Edge Function environment");
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -34,108 +29,101 @@ serve(async (req) => {
   }
 
   try {
-<<<<<<< HEAD
-    const { message, type, context, userId, history } = await req.json();
-
-=======
     if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
+      throw new Error("OpenAI API key not configured");
     }
 
-    const { message, type, context, userId } = await req.json();
+    const { message, type, context, userId, history } = await req.json();
     
->>>>>>> cc00acb52af95c2461dec170f5799b022e1e6f24
+    if (!userId) {
+      return new Response(
+        JSON.stringify({
+          error: "User ID is required",
+        }),
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get user's financial profile
+    // Get user's financial profile (optional for new users)
     const { data: financialProfile } = await supabase
       .from("financial_profiles")
       .select("*")
       .eq("user_id", userId)
       .single();
 
-    if (!financialProfile) {
-      return new Response(
-        JSON.stringify({
-          error:
-            "No financial profile found for this user. Please complete your financial setup.",
-        }),
-        { status: 400, headers: corsHeaders }
-      );
-    }
-
-    // Get user's goals, debts, and budget
+    // Get user's goals, debts, and budget (all optional for new users)
     const [goalsRes, debtsRes, budgetRes] = await Promise.all([
       supabase.from("financial_goals").select("*").eq("user_id", userId),
       supabase.from("debts_subscriptions").select("*").eq("user_id", userId),
       supabase.from("budget_categories").select("*").eq("user_id", userId),
     ]);
 
-    if (!goalsRes.data || goalsRes.data.length === 0) {
-      return new Response(
-        JSON.stringify({
-          error:
-            "No financial goals found for this user. Please add at least one goal.",
-        }),
-        { status: 400, headers: corsHeaders }
-      );
-    }
-    if (!debtsRes.data || debtsRes.data.length === 0) {
-      return new Response(
-        JSON.stringify({
-          error:
-            "No debts or subscriptions found for this user. Please add at least one debt or subscription.",
-        }),
-        { status: 400, headers: corsHeaders }
-      );
-    }
-    if (!budgetRes.data || budgetRes.data.length === 0) {
-      return new Response(
-        JSON.stringify({
-          error:
-            "No budget categories found for this user. Please add at least one budget category.",
-        }),
-        { status: 400, headers: corsHeaders }
-      );
-    }
+    // Build system prompt based on available data
+    let systemPrompt = `You are FinanceAI, a helpful financial advisor for young professionals. `;
 
-    const systemPrompt = `You are FinanceAI, a helpful financial advisor for young professionals. 
-
+    if (financialProfile) {
+      systemPrompt += `
 User's Financial Profile:
-- Credit Score: ${financialProfile?.credit_score || "Not provided"}
-- Monthly Income: ₹${financialProfile?.monthly_income || "Not provided"}
-- Monthly Expenses: ₹${financialProfile?.monthly_expenses || "Not provided"}
-- Savings: ₹${financialProfile?.savings_balance || "Not provided"}
-- Total Debt: ₹${financialProfile?.debt_amount || "Not provided"}
-
-Current Goals: ${
-      goalsRes.data
-        ?.map((g) => `${g.title} (₹${g.target_amount})`)
-        .join(", ") || "None set"
-    }
-Active Debts/Subscriptions: ${
-      debtsRes.data?.map((d) => `${d.name} (₹${d.amount})`).join(", ") || "None"
-    }
-Budget Categories: ${
-      budgetRes.data
-        ?.map((b) => `${b.name}: ₹${b.allocated_amount}`)
-        .join(", ") || "None set"
+- Credit Score: ${financialProfile.credit_score || "Not provided"}
+- Monthly Income: ₹${financialProfile.monthly_income || "Not provided"}
+- Monthly Expenses: ₹${financialProfile.monthly_expenses || "Not provided"}
+- Savings: ₹${financialProfile.savings_balance || "Not provided"}
+- Total Debt: ₹${financialProfile.debt_amount || "Not provided"}`;
+    } else {
+      systemPrompt += `
+Note: This user is new and hasn't completed their financial profile yet. Provide general financial advice and encourage them to complete their profile setup.`;
     }
 
-Provide practical, actionable financial advice. Be encouraging but realistic. Always consider their credit score and financial situation when giving advice. Use rupees (₹) for all amounts.`;
+    // Add available data to context
+    if (goalsRes.data && goalsRes.data.length > 0) {
+      systemPrompt += `
+Current Goals: ${goalsRes.data.map((g) => `${g.title} (₹${g.target_amount})`).join(", ")}`;
+    }
+
+    if (debtsRes.data && debtsRes.data.length > 0) {
+      systemPrompt += `
+Active Debts/Subscriptions: ${debtsRes.data.map((d) => `${d.name} (₹${d.amount})`).join(", ")}`;
+    }
+
+    if (budgetRes.data && budgetRes.data.length > 0) {
+      systemPrompt += `
+Budget Categories: ${budgetRes.data.map((b) => `${b.name}: ₹${b.allocated_amount}`).join(", ")}`;
+    }
+
+    systemPrompt += `
+
+Provide practical, actionable financial advice. Be encouraging but realistic. If the user hasn't completed their profile, guide them to do so. Use rupees (₹) for all amounts.`;
 
     let userPrompt = message;
 
     if (type === "explain") {
       userPrompt = `Explain the following advice in simple, beginner-friendly terms. Keep it concise but clear. Advice: \n${message}`;
     } else if (type === "purchase_advice" && context?.itemPrice) {
-      userPrompt = `I want to buy ${context.itemName} for ₹${context.itemPrice}. Can I afford this? Should I buy it now or wait? Consider my credit score, monthly budget, and financial goals.`;
+      if (financialProfile) {
+        userPrompt = `I want to buy ${context.itemName} for ₹${context.itemPrice}. Can I afford this? Should I buy it now or wait? Consider my credit score, monthly budget, and financial goals.`;
+      } else {
+        userPrompt = `I want to buy ${context.itemName} for ₹${context.itemPrice}. Can I afford this? Should I buy it now or wait? (Note: I haven't completed my financial profile yet, so provide general advice and encourage me to complete my profile for personalized recommendations.)`;
+      }
     } else if (type === "budget_help") {
-      userPrompt = `Help me create a monthly budget plan based on my income of ₹${financialProfile?.monthly_income}. Suggest allocations for different categories.`;
+      if (financialProfile?.monthly_income) {
+        userPrompt = `Help me create a monthly budget plan based on my income of ₹${financialProfile.monthly_income}. Suggest allocations for different categories.`;
+      } else {
+        userPrompt = `Help me create a monthly budget plan. I haven't set up my financial profile yet, so provide general budgeting advice and encourage me to complete my profile for personalized recommendations.`;
+      }
     } else if (type === "credit_improvement") {
-      userPrompt = `My credit score is ${financialProfile?.credit_score}. Explain what this means and give me a specific plan to improve it.`;
+      if (financialProfile?.credit_score) {
+        userPrompt = `My credit score is ${financialProfile.credit_score}. Explain what this means and give me a specific plan to improve it.`;
+      } else {
+        userPrompt = `I want to improve my credit score. Explain what credit scores mean and give me general tips for improvement. Encourage me to complete my financial profile for personalized advice.`;
+      }
     } else if (type === "subscription_opt") {
-      userPrompt = `Review my subscriptions and recommend which ones I should cancel or downgrade to save money.`;
+      if (debtsRes.data && debtsRes.data.length > 0) {
+        userPrompt = `Review my subscriptions and recommend which ones I should cancel or downgrade to save money.`;
+      } else {
+        userPrompt = `I want to optimize my subscriptions. Since I haven't added any yet, provide general advice on subscription management and encourage me to add my subscriptions to get personalized recommendations.`;
+      }
     } else if (type === "utility_opt") {
       userPrompt = `Analyze my recent electricity and gas bills and provide practical, personalized energy-saving actions I can take to lower my monthly utility costs. Keep suggestions realistic for an average apartment.`;
     }
@@ -164,22 +152,11 @@ Provide practical, actionable financial advice. Be encouraging but realistic. Al
     }
 
     const data = await response.json();
-<<<<<<< HEAD
-    if (!response.ok) {
-      throw new Error(
-        `OpenAI API error: ${data.error?.message || response.statusText}`
-      );
-    }
-    if (!data.choices || !data.choices[0]?.message?.content) {
-      throw new Error("OpenAI API did not return a valid response.");
-    }
-=======
     
     if (!data.choices || !data.choices[0] || !data.choices[0].message) {
       throw new Error('Invalid response from OpenAI API');
     }
     
->>>>>>> cc00acb52af95c2461dec170f5799b022e1e6f24
     const aiResponse = data.choices[0].message.content;
 
     // Save conversation to database

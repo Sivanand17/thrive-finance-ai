@@ -446,17 +446,17 @@ const WhatIfSimulator = ({ userId }: WhatIfSimulatorProps) => {
       </Card>
 
       {/* Input Controls */}
-      <Card>
-        <CardHeader>
+    <Card>
+      <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calculator className="w-5 h-5 text-primary" />
             Scenario Parameters
           </CardTitle>
-          <CardDescription>
+        <CardDescription>
             Adjust these values to see how different financial decisions impact
             your future
-          </CardDescription>
-        </CardHeader>
+        </CardDescription>
+      </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Extra Savings */}
@@ -520,8 +520,8 @@ const WhatIfSimulator = ({ userId }: WhatIfSimulatorProps) => {
                 Time Period
               </Label>
               <div className="space-y-2">
-                <Input
-                  type="number"
+            <Input
+              type="number"
                   value={timeframe}
                   onChange={(e) => setTimeframe(Number(e.target.value))}
                   placeholder="12"
@@ -548,13 +548,13 @@ const WhatIfSimulator = ({ userId }: WhatIfSimulatorProps) => {
                 <Target className="w-4 h-4" />
                 Financial Goal
               </Label>
-              <Input
-                type="number"
+            <Input
+              type="number"
                 value={goalAmount}
                 onChange={(e) => setGoalAmount(Number(e.target.value))}
                 placeholder="100000"
-              />
-            </div>
+            />
+          </div>
 
             {/* Interest Rate */}
             <div className="space-y-3">
@@ -562,10 +562,10 @@ const WhatIfSimulator = ({ userId }: WhatIfSimulatorProps) => {
                 <TrendingUp className="w-4 h-4" />
                 Interest Rate (%)
               </Label>
-              <Input
-                type="number"
-                value={interestRate}
-                onChange={(e) => setInterestRate(Number(e.target.value))}
+            <Input
+              type="number"
+              value={interestRate}
+              onChange={(e) => setInterestRate(Number(e.target.value))}
                 placeholder="7"
                 step="0.1"
               />
@@ -933,10 +933,10 @@ const WhatIfSimulator = ({ userId }: WhatIfSimulatorProps) => {
                         income.
                       </p>
                     </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+          </div>
+        )}
+      </CardContent>
+    </Card>
           ))}
         </div>
       )}
