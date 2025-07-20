@@ -158,8 +158,8 @@ interface TrendData {
   income: number;
 }
 
-// Use environment variable for OpenAI key
-const OPENAI_FALLBACK_KEY = import.meta.env.VITE_OPENAI_API_KEY || ""; // Set this in .env.local, never commit your key
+// Use environment variable for API key
+const API_KEY = import.meta.env.VITE_OPENAI_API_KEY || ""; // Set this in .env.local, never commit your key
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -432,9 +432,9 @@ const Dashboard = () => {
           // Fallback to OpenAI directly
           console.log(
             "[AI DEBUG] Supabase returned no response, falling back to OpenAI. Key present:",
-            !!OPENAI_FALLBACK_KEY
+            !!API_KEY
           );
-          if (OPENAI_FALLBACK_KEY === "") {
+          if (API_KEY === "") {
             setAiError(true);
             setNextSteps(
               "OpenAI API key is missing. Please set it in .env.local."
@@ -446,7 +446,7 @@ const Dashboard = () => {
               {
                 method: "POST",
                 headers: {
-                  Authorization: `Bearer ${OPENAI_FALLBACK_KEY}`,
+                  Authorization: `Bearer ${API_KEY}`,
                   "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
@@ -499,7 +499,7 @@ const Dashboard = () => {
       } catch (e) {
         // Fallback to OpenAI directly if Supabase call throws
         console.error("[AI DEBUG] Supabase fetch threw error:", e);
-        if (OPENAI_FALLBACK_KEY === "") {
+        if (API_KEY === "") {
           setAiError(true);
           setNextSteps(
             "OpenAI API key is missing. Please set it in .env.local."
@@ -512,7 +512,7 @@ const Dashboard = () => {
               {
                 method: "POST",
                 headers: {
-                  Authorization: `Bearer ${OPENAI_FALLBACK_KEY}`,
+                  Authorization: `Bearer ${API_KEY}`,
                   "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
