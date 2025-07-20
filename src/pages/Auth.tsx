@@ -72,6 +72,9 @@ const Auth = () => {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: { full_name: fullName }, // Save full name to user metadata
+        },
       });
 
       if (error) throw error;
@@ -120,6 +123,7 @@ const Auth = () => {
         description: errorMessage,
         variant: "destructive",
       });
+      console.error("Sign up error:", error); // Add error logging
     } finally {
       setIsLoading(false);
     }
@@ -173,6 +177,7 @@ const Auth = () => {
         description: errorMessage,
         variant: "destructive",
       });
+      console.error("Sign in error:", error); // Add error logging
     } finally {
       setIsLoading(false);
     }

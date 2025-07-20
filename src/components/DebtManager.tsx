@@ -31,6 +31,44 @@ import {
 } from "lucide-react";
 import { formatAIContent } from "./ai-format";
 
+// AI Response formatting function (same as AIChat component)
+const formatAIResponse = (content: string) => {
+  return (
+    content
+      // Add emojis to common financial terms
+      .replace(/budget/gi, "💰 budget")
+      .replace(/credit score/gi, "📊 credit score")
+      .replace(/savings/gi, "🏦 savings")
+      .replace(/debt/gi, "💳 debt")
+      .replace(/investment/gi, "📈 investment")
+      .replace(/emergency fund/gi, "🚨 emergency fund")
+      .replace(/goal/gi, "🎯 goal")
+      // Format headings with better typography
+      .replace(
+        /^### (.+)$/gm,
+        '<h3 class="text-lg font-semibold text-primary mb-2 mt-4">💡 $1</h3>'
+      )
+      .replace(
+        /^## (.+)$/gm,
+        '<h2 class="text-xl font-bold text-primary mb-3 mt-4">✨ $1</h2>'
+      )
+      .replace(
+        /^# (.+)$/gm,
+        '<h1 class="text-2xl font-bold text-primary mb-4 mt-4">🌟 $1</h1>'
+      )
+      // Format bold text
+      .replace(
+        /\*\*(.+?)\*\*/g,
+        '<strong class="font-semibold text-primary">$1</strong>'
+      )
+      // Format bullet points with emojis
+      .replace(/^- (.+)$/gm, "• $1")
+      .replace(/^• /gm, "✅ ")
+      // Add line breaks for better readability
+      .replace(/\n/g, "<br/>")
+  );
+};
+
 interface DebtManagerProps {
   userId?: string;
 }
@@ -378,9 +416,12 @@ const DebtManager = ({ userId }: DebtManagerProps) => {
             <CardTitle>AI Suggestions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2 text-sm leading-relaxed">
-              {formatAIContent(aiSuggestion)}
-            </div>
+            <div
+              className="space-y-2 text-sm leading-relaxed"
+              dangerouslySetInnerHTML={{
+                __html: formatAIResponse(aiSuggestion),
+              }}
+            />
           </CardContent>
         </Card>
       )}

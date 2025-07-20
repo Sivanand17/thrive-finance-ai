@@ -68,6 +68,44 @@ import {
 } from "../components/ui/accordion";
 import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
 
+// AI Response formatting function (same as AIChat component)
+const formatAIResponse = (content: string) => {
+  return (
+    content
+      // Add emojis to common financial terms
+      .replace(/budget/gi, "💰 budget")
+      .replace(/credit score/gi, "📊 credit score")
+      .replace(/savings/gi, "🏦 savings")
+      .replace(/debt/gi, "💳 debt")
+      .replace(/investment/gi, "📈 investment")
+      .replace(/emergency fund/gi, "🚨 emergency fund")
+      .replace(/goal/gi, "🎯 goal")
+      // Format headings with better typography
+      .replace(
+        /^### (.+)$/gm,
+        '<h3 class="text-lg font-semibold text-primary mb-2 mt-4">💡 $1</h3>'
+      )
+      .replace(
+        /^## (.+)$/gm,
+        '<h2 class="text-xl font-bold text-primary mb-3 mt-4">✨ $1</h2>'
+      )
+      .replace(
+        /^# (.+)$/gm,
+        '<h1 class="text-2xl font-bold text-primary mb-4 mt-4">🌟 $1</h1>'
+      )
+      // Format bold text
+      .replace(
+        /\*\*(.+?)\*\*/g,
+        '<strong class="font-semibold text-primary">$1</strong>'
+      )
+      // Format bullet points with emojis
+      .replace(/^- (.+)$/gm, "• $1")
+      .replace(/^• /gm, "✅ ")
+      // Add line breaks for better readability
+      .replace(/\n/g, "<br/>")
+  );
+};
+
 // Define types for financial profile, budget category, goal, bill, trend, and debt
 interface FinancialProfile {
   user_id: string;
@@ -262,18 +300,18 @@ const Dashboard = () => {
   }, [user]);
 
   const loadFinancialProfile = async (userId: string) => {
-    // Mock financial profile for development
-    const mockProfile: FinancialProfile = {
-      user_id: userId,
-      credit_score: 720,
-      monthly_income: 75000,
-      monthly_expenses: 45000,
-      savings_balance: 125000,
-      debt_amount: 35000,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    setFinancialProfile(mockProfile);
+    // Fetch from Supabase
+    const { data, error } = await supabase
+      .from("financial_profiles")
+      .select("*")
+      .eq("user_id", userId)
+      .single();
+
+    if (error || !data) {
+      setFinancialProfile(null); // Show FinancialSetup
+    } else {
+      setFinancialProfile(data);
+    }
   };
 
   // Load insights (budget overspending & emergency fund progress)
@@ -1046,7 +1084,11 @@ const Dashboard = () => {
                                 </button>
                               </span>
                             ) : nextSteps ? (
-                              formatAIContent(nextSteps)
+                              <div
+                                dangerouslySetInnerHTML={{
+                                  __html: formatAIResponse(nextSteps),
+                                }}
+                              />
                             ) : (
                               <span className="text-muted-foreground">
                                 Loading AI plan...
@@ -1196,7 +1238,7 @@ const Dashboard = () => {
               </div>
             )}
 
-            {activeTab === "whatif" && <WhatIfSimulator />}
+            {activeTab === "whatif" && <WhatIfSimulator userId={user?.id} />}
 
             {activeTab === "learn" && (
               <div className="space-y-6">
@@ -1426,7 +1468,6 @@ const Dashboard = () => {
             {activeTab === "budget" && <BudgetPlanner userId={user?.id} />}
             {activeTab === "debts" && <DebtManager userId={user?.id} />}
             {activeTab === "goals" && <GoalTracker userId={user?.id} />}
-            {activeTab === "whatif" && <WhatIfSimulator />}
           </div>
         </div>
       </div>
