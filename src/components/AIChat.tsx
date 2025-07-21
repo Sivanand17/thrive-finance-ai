@@ -198,7 +198,7 @@ const AIChat = ({ userId }: AIChatProps) => {
         }
       );
 
-      if (error || !data?.response) {
+      if (error) {
         // Fallback to OpenAI directly
         const openaiRes = await fetch(
           "https://api.openai.com/v1/chat/completions",
@@ -241,7 +241,7 @@ const AIChat = ({ userId }: AIChatProps) => {
             variant: "destructive",
           });
         }
-      } else {
+      } else if (data?.response) {
         const aiMessage: Message = {
           id: (Date.now() + 1).toString(),
           type: "ai",
@@ -250,6 +250,22 @@ const AIChat = ({ userId }: AIChatProps) => {
           conversationType: type,
         };
         setMessages((prev) => [...prev, aiMessage]);
+      } else if (data?.error) {
+        // Handle setup guidance from Edge Function
+        const aiMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: "ai",
+          content: data.error,
+          timestamp: new Date(),
+          conversationType: type,
+        };
+        setMessages((prev) => [...prev, aiMessage]);
+      } else {
+        toast({
+          title: "Error getting AI response",
+          description: "AI is currently unavailable. Please try again later.",
+          variant: "destructive",
+        });
       }
     } catch (error: any) {
       // Fallback to OpenAI directly if Supabase call throws

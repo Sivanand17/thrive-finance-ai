@@ -413,21 +413,21 @@ const Dashboard = () => {
             },
           });
         console.log("[AI DEBUG] Supabase response:", aiData, supabaseError);
-        if (supabaseError || aiData?.error) {
+        if (supabaseError) {
           setAiError(true);
           setNextSteps(
-            aiData?.error ||
-              supabaseError?.message ||
-              "AI plan error from Supabase. Check logs."
+            supabaseError?.message || "AI plan error from Supabase. Check logs."
           );
-          console.error(
-            "[AI DEBUG] Supabase AI error:",
-            aiData?.error || supabaseError
-          );
+          console.error("[AI DEBUG] Supabase AI error:", supabaseError);
         } else if (aiData?.response) {
           setNextSteps(aiData.response);
           setAiError(false);
           console.log("[AI DEBUG] Supabase AI plan:", aiData.response);
+        } else if (aiData?.error) {
+          // Handle setup guidance from Edge Function
+          setNextSteps(aiData.error);
+          setAiError(false); // Don't show as error, show as guidance
+          console.log("[AI DEBUG] Setup guidance:", aiData.error);
         } else {
           // Fallback to OpenAI directly
           console.log(
